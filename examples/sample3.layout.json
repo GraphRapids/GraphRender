@@ -1,0 +1,273 @@
+{
+  "id": "canvas",
+  "children": [
+    {
+      "id": "node_1",
+      "labels": [
+        {
+          "text": "BGP-NUK-1",
+          "layoutOptions": {
+            "org.eclipse.elk.font.size": "16"
+          },
+          "x": -25.0,
+          "y": 55.0,
+          "width": 100.0,
+          "height": 16.0
+        }
+      ],
+      "ports": [
+        {
+          "id": "node_1_eth0",
+          "labels": [
+            {
+              "text": "eth0",
+              "layoutOptions": {
+                "org.eclipse.elk.font.size": "8"
+              },
+              "x": 3.0,
+              "y": 3.0,
+              "width": 50.0,
+              "height": 8.0
+            }
+          ],
+          "layoutOptions": {
+            "org.eclipse.elk.port.side": "EAST"
+          },
+          "x": 50.0,
+          "y": 32.666666666666664,
+          "width": 2.0,
+          "height": 2.0,
+          "properties": {}
+        },
+        {
+          "id": "node_1_eth1",
+          "labels": [
+            {
+              "text": "eth1",
+              "layoutOptions": {
+                "org.eclipse.elk.font.size": "8"
+              },
+              "x": 3.0,
+              "y": -9.0,
+              "width": 50.0,
+              "height": 8.0
+            }
+          ],
+          "layoutOptions": {
+            "org.eclipse.elk.port.side": "EAST"
+          },
+          "x": 50.0,
+          "y": 15.333333333333332,
+          "width": 2.0,
+          "height": 2.0,
+          "properties": {}
+        }
+      ],
+      "layoutOptions": {
+        "org.eclipse.elk.nodeSize.constraints": "[]",
+        "org.eclipse.elk.nodeLabels.placement": "[H_CENTER, V_BOTTOM, OUTSIDE, H_PRIORITY]",
+        "org.eclipse.elk.layered.crossingMinimization.positionId": "-1",
+        "org.eclipse.elk.layered.layering.layerId": "-1"
+      },
+      "x": 37.0,
+      "y": 12.0,
+      "width": 50.0,
+      "height": 50.0,
+      "type": "router",
+      "icon": "mdi:router",
+      "properties": {
+        "portConstraints": "[FREE, FIXED_ORDER]",
+        "nodeLabels.placement": "[OUTSIDE, V_BOTTOM, H_CENTER, H_PRIORITY]"
+      }
+    },
+    {
+      "id": "node_2",
+      "labels": [
+        {
+          "text": "BGP-NUK-2",
+          "layoutOptions": {
+            "org.eclipse.elk.font.size": "16"
+          },
+          "x": -25.0,
+          "y": 55.0,
+          "width": 100.0,
+          "height": 16.0
+        }
+      ],
+      "ports": [
+        {
+          "id": "node_2_eth0",
+          "labels": [
+            {
+              "text": "eth0",
+              "layoutOptions": {
+                "org.eclipse.elk.font.size": "8"
+              },
+              "x": -51.0,
+              "y": 3.0,
+              "width": 50.0,
+              "height": 8.0
+            }
+          ],
+          "layoutOptions": {
+            "org.eclipse.elk.port.side": "WEST"
+          },
+          "x": -2.0,
+          "y": 32.666666666666664,
+          "width": 2.0,
+          "height": 2.0,
+          "properties": {}
+        },
+        {
+          "id": "node_2_eth1",
+          "labels": [
+            {
+              "text": "eth1",
+              "layoutOptions": {
+                "org.eclipse.elk.font.size": "8"
+              },
+              "x": -51.0,
+              "y": -9.0,
+              "width": 50.0,
+              "height": 8.0
+            }
+          ],
+          "layoutOptions": {
+            "org.eclipse.elk.port.side": "WEST"
+          },
+          "x": -2.0,
+          "y": 15.333333333333332,
+          "width": 2.0,
+          "height": 2.0,
+          "properties": {}
+        }
+      ],
+      "layoutOptions": {
+        "org.eclipse.elk.nodeSize.constraints": "[]",
+        "org.eclipse.elk.nodeLabels.placement": "[H_CENTER, V_BOTTOM, OUTSIDE, H_PRIORITY]",
+        "org.eclipse.elk.layered.crossingMinimization.positionId": "-1",
+        "org.eclipse.elk.layered.layering.layerId": "-1"
+      },
+      "x": 333.0,
+      "y": 12.0,
+      "width": 50.0,
+      "height": 50.0,
+      "type": "router",
+      "icon": "mdi:router",
+      "properties": {
+        "portConstraints": "[FREE, FIXED_ORDER]",
+        "nodeLabels.placement": "[OUTSIDE, V_BOTTOM, H_CENTER, H_PRIORITY]"
+      }
+    }
+  ],
+  "layoutOptions": {
+    "org.eclipse.elk.portLabels.placement": "[OUTSIDE]",
+    "org.eclipse.elk.nodeLabels.placement": "[H_CENTER, V_BOTTOM, OUTSIDE, H_PRIORITY]",
+    "org.eclipse.elk.algorithm": "layered",
+    "org.eclipse.elk.direction": "RIGHT",
+    "org.eclipse.elk.nodeSize.constraints": "[]",
+    "org.eclipse.elk.layered.layering.strategy": "NETWORK_SIMPLEX",
+    "org.eclipse.elk.aspectRatio": "1.414",
+    "org.eclipse.elk.zoomToFit": "true",
+    "org.eclipse.elk.nodeSize.options": "[DEFAULT_MINIMUM_SIZE]",
+    "org.eclipse.elk.nodeSize.minimum": "(0.0,0.0)"
+  },
+  "x": 0.0,
+  "y": 0.0,
+  "width": 420.0,
+  "height": 95.0,
+  "edges": [
+    {
+      "id": "E1",
+      "sources": [
+        "node_1_eth0"
+      ],
+      "targets": [
+        "node_2_eth0"
+      ],
+      "labels": [
+        {
+          "text": "Uplink",
+          "layoutOptions": {
+            "org.eclipse.elk.edgeLabels.inline": "false",
+            "org.eclipse.elk.font.size": "10"
+          },
+          "x": 160.0,
+          "y": 48.666666666666664,
+          "width": 100.0,
+          "height": 10.0
+        }
+      ],
+      "sections": [
+        {
+          "id": "s0",
+          "startPoint": {
+            "x": 89.0,
+            "y": 45.666666666666664
+          },
+          "endPoint": {
+            "x": 331.0,
+            "y": 45.666666666666664
+          },
+          "incomingShape": "node_1_eth0",
+          "outgoingShape": "node_2_eth0"
+        }
+      ],
+      "layoutOptions": {
+        "org.eclipse.elk.edge.thickness": "1.0",
+        "org.eclipse.elk.edge.type": "UNDIRECTED",
+        "org.eclipse.elk.junctionPoints": "()"
+      },
+      "properties": {
+        "edge.type": "UNDIRECTED",
+        "edge.thickness": 1
+      }
+    },
+    {
+      "id": "E2",
+      "sources": [
+        "node_1_eth1"
+      ],
+      "targets": [
+        "node_2_eth1"
+      ],
+      "labels": [
+        {
+          "text": "Uplink",
+          "layoutOptions": {
+            "org.eclipse.elk.edgeLabels.inline": "false",
+            "org.eclipse.elk.font.size": "10"
+          },
+          "x": 160.0,
+          "y": 15.333333333333332,
+          "width": 100.0,
+          "height": 10.0
+        }
+      ],
+      "sections": [
+        {
+          "id": "s1",
+          "startPoint": {
+            "x": 89.0,
+            "y": 28.333333333333332
+          },
+          "endPoint": {
+            "x": 331.0,
+            "y": 28.333333333333332
+          },
+          "incomingShape": "node_1_eth1",
+          "outgoingShape": "node_2_eth1"
+        }
+      ],
+      "layoutOptions": {
+        "org.eclipse.elk.edge.thickness": "1.0",
+        "org.eclipse.elk.edge.type": "UNDIRECTED",
+        "org.eclipse.elk.junctionPoints": "()"
+      },
+      "properties": {
+        "edge.type": "UNDIRECTED",
+        "edge.thickness": 1
+      }
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+    "children": [
+        {
+            "id": "node_1",
+            "type": "router",
+            "icon": "mdi:router",
+            "labels": [ { "text": "BGP-NUK-1" } ],
+            "ports": [
+                { "id": "node_1_eth0", "labels": [ { "text": "eth0"} ]},
+                { "id": "node_1_eth1", "labels": [ { "text": "eth1"} ] }
+            ]
+        },
+        {
+            "id": "node_2",
+            "type": "router",
+            "icon": "mdi:router",
+            "labels": [ { "text": "BGP-NUK-2" } ],
+            "ports": [
+                { "id": "node_2_eth0", "labels": [ { "text": "eth0"} ]},
+                { "id": "node_2_eth1", "labels": [ { "text": "eth1"} ] }
+            ]
+        }
+    ],
+    "edges": [
+        {
+            "id": "E1",
+            "sources": [ "node_1_eth0" ],
+            "targets": [ "node_2_eth0" ],
+            "labels": [ { "text": "Uplink" } ]
+        },
+        {
+            "id": "E2",
+            "sources": [ "node_1_eth1" ],
+            "targets": [ "node_2_eth1" ],
+            "labels": [ { "text": "Uplink" } ]
+        }
+    ]
+}

@@ -13,17 +13,22 @@ running a layout algorithm) into a styled SVG that includes:
 from __future__ import annotations
 
 import json
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
+from .resources import default_theme_css
 
 import svg
-
 
 Number = float | int
 Point = Tuple[Number, Number]
 
+ET.register_namespace("", "http://www.w3.org/2000/svg")
 
-class mElk:
+
+class ElkGraphSvg:
     """Convert ELK JSON to svg.py structures."""
 
     def __init__(
@@ -35,10 +40,14 @@ class mElk:
         port_style: Optional[Dict] = None,
         edge_style: Optional[Dict] = None,
         font_size: Number = 12,
+        embed_theme: bool = True,
+        theme_css: Optional[str] = None,
     ) -> None:
         self.graph = graph
         self.padding = padding
         self.font_size = font_size
+        self.embed_theme = embed_theme
+        self.theme_css = theme_css
 
         self.node_style = {
             "fill": "lightblue",
@@ -68,6 +77,9 @@ class mElk:
         self.labels: List[Dict] = []
         self.port_lookup: Dict[str, Dict] = {}
         self.node_lookup: Dict[str, Dict] = {}
+        self._icon_cache: Dict[str, Optional[str]] = {}
+        self._icon_geom_cache: Dict[str, Optional[Tuple[str, float, float]]] = {}
+        self._defs_cache: Optional[svg.Defs] = None
 
         self._collect_graph(self.graph, offset=(0, 0))
 
@@ -153,6 +165,110 @@ class mElk:
                         return None
         return None
 
+    def _edge_type(self, edge: Dict) -> Optional[str]:
+        """Return the edge type when set directly on the edge object."""
+        val = edge.get("type")
+        return str(val) if val is not None else None
+
+    # ------------------------------------------------------------------ #
+    # Icons
+    # ------------------------------------------------------------------ #
+    def _fetch_icon_svg(self, icon_name: str) -> Optional[str]:
+        """Download an Iconify SVG once and memoize the string."""
+        if icon_name in self._icon_cache:
+            return self._icon_cache[icon_name]
+
+        url = f"https://api.iconify.design/{icon_name}.svg"
+        try:
+            req = Request(url, headers={"User-Agent": "melk/1.0"})
+            with urlopen(req, timeout=5) as resp:  # type: ignore[arg-type]
+                data = resp.read().decode("utf-8")
+                self._icon_cache[icon_name] = data
+                return data
+        except (HTTPError, URLError, TimeoutError, ValueError):
+            self._icon_cache[icon_name] = None
+            return None
+
+    def _icon_element(self, icon_name: str, node: Dict):
+        """
+        Return a scaled svg.Raw (or fallback object) that centers the icon
+        within the node rectangle. Parsing and viewBox extraction are cached
+        per icon to avoid repeated XML parsing.
+        """
+        cached = self._icon_geom_cache.get(icon_name)
+        if cached is None:
+            svg_text = self._fetch_icon_svg(icon_name)
+            if not svg_text:
+                self._icon_geom_cache[icon_name] = None
+                return None
+            try:
+                root = ET.fromstring(svg_text)
+            except ET.ParseError:
+                self._icon_geom_cache[icon_name] = None
+                return None
+
+            view_box = root.get("viewBox")
+            vb_w = vb_h = None
+            if view_box:
+                parts = view_box.split()
+                if len(parts) == 4:
+                    try:
+                        vb_w, vb_h = float(parts[2]), float(parts[3])
+                    except ValueError:
+                        vb_w = vb_h = None
+
+            if vb_w is None or vb_h is None:
+                try:
+                    vb_w = float((root.get("width") or "0").replace("px", ""))
+                    vb_h = float((root.get("height") or "0").replace("px", ""))
+                except ValueError:
+                    self._icon_geom_cache[icon_name] = None
+                    return None
+
+            if vb_w <= 0 or vb_h <= 0:
+                self._icon_geom_cache[icon_name] = None
+                return None
+
+            inner = "".join(ET.tostring(child, encoding="unicode") for child in list(root))
+            cached = (inner, vb_w, vb_h)
+            self._icon_geom_cache[icon_name] = cached
+        elif cached is None:
+            return None
+
+        inner, vb_w, vb_h = cached
+
+        margin = 4
+        target_w = max(node["width"] - margin * 2, 1)
+        target_h = max(node["height"] - margin * 2, 1)
+        scale = min(target_w / vb_w, target_h / vb_h)
+
+        cx = node["x"] + node["width"] / 2
+        cy = node["y"] + node["height"] / 2
+
+        g_str = (
+            f'<g class="icon" transform="translate({cx},{cy}) '
+            f'scale({scale}) translate({-vb_w/2},{-vb_h/2})">{inner}</g>'
+        )
+
+        raw_cls = getattr(svg, "Raw", None)
+        if raw_cls:
+            try:
+                return raw_cls(g_str)
+            except Exception:
+                pass
+
+        class _InlineRaw:
+            def __init__(self, text: str) -> None:
+                self.text = text
+
+            def as_str(self) -> str:
+                return self.text
+
+            def __str__(self) -> str:
+                return self.text
+
+        return _InlineRaw(g_str)
+
     def _label_to_text(self, lbl: Dict) -> svg.Text:
         """Create an svg.Text element for a label dict."""
         x = lbl["x"] + lbl.get("width", 0) / 2
@@ -181,13 +297,13 @@ class mElk:
     # Constructors
     # ------------------------------------------------------------------ #
     @classmethod
-    def from_file(cls, path: str | Path, **kwargs) -> "mElk":
+    def from_file(cls, path: str | Path, **kwargs) -> "ElkGraphSvg":
         """Load ELK JSON from a file."""
         data = json.loads(Path(path).read_text())
         return cls(data, **kwargs)
 
     @classmethod
-    def from_json(cls, json_str: str, **kwargs) -> "mElk":
+    def from_json(cls, json_str: str, **kwargs) -> "ElkGraphSvg":
         """Load ELK JSON from a JSON string."""
         data = json.loads(json_str)
         return cls(data, **kwargs)
@@ -200,17 +316,63 @@ class mElk:
         width, height = self._canvas_size()
 
         root = svg.SVG(width=width, height=height, elements=[])
+
+        bg_rect = self._build_background_rect(width, height)
+        if bg_rect:
+            root.elements.append(bg_rect)
+
+        style_el = self._build_style_element()
+        if style_el:
+            root.elements.append(style_el)
+
         root.elements.append(self._build_defs())
 
         label_maps = self._partition_labels()
 
         nodes_group = self._build_nodes_group(label_maps)
-        root.elements.append(nodes_group)
+        if nodes_group is not None:
+            root.elements.append(nodes_group)
 
         edges_group = self._build_edges_group(label_maps)
-        root.elements.append(edges_group)
+        if edges_group is not None:
+            root.elements.append(edges_group)
 
         return root
+
+    def _build_style_element(self):
+        """Optionally build a <style> element from the bundled theme."""
+        if not self.embed_theme:
+            return None
+
+        css_text = self.theme_css if self.theme_css is not None else default_theme_css()
+        if not css_text:
+            return None
+
+        style_cls = getattr(svg, "Style", None)
+        if style_cls:
+            try:
+                return style_cls(content=css_text)
+            except Exception:
+                pass
+
+        raw_cls = getattr(svg, "Raw", None)
+        if raw_cls:
+            try:
+                return raw_cls(f"<style>{css_text}</style>")
+            except Exception:
+                pass
+
+        class _InlineStyle:
+            def __init__(self, css: str) -> None:
+                self.css = css
+
+            def as_str(self) -> str:
+                return f"<style>{self.css}</style>"
+
+            def __str__(self) -> str:  # svg.py may fall back to str()
+                return self.as_str()
+
+        return _InlineStyle(css_text)
 
     def to_string(self) -> str:
         """Return the SVG as a string."""
@@ -331,7 +493,10 @@ class mElk:
     # Drawing helpers
     # ------------------------------------------------------------------ #
     def _build_defs(self) -> svg.Defs:
-        """Marker definitions (arrow heads, etc.)."""
+        """Marker definitions (arrow heads, etc.). Memoized per instance."""
+        if self._defs_cache is not None:
+            return self._defs_cache
+
         arrow = svg.Marker(
             id="arrow",
             markerWidth=10,
@@ -395,9 +560,30 @@ class mElk:
             ],
         )
 
-        return svg.Defs(elements=[arrow, open_arrow, triangle_hollow])
+        self._defs_cache = svg.Defs(elements=[arrow, open_arrow, triangle_hollow])
+        return self._defs_cache
 
-    def _build_nodes_group(self, label_maps: Dict[str, Dict[str, List[Dict]]]) -> svg.G:
+    def _build_background_rect(self, canvas_width: Number, canvas_height: Number):
+        """Optional background rect covering the root graph area."""
+        try:
+            width = canvas_width - self.padding * 2
+            height = canvas_height - self.padding * 2
+            if width <= 0 or height <= 0:
+                return None
+            return svg.Rect(
+                id=self.graph.get("id"),
+                class_="background",
+                x=self.padding,
+                y=self.padding,
+                width=width,
+                height=height,
+                fill="none",
+                stroke="none",
+            )
+        except Exception:
+            return None
+
+    def _build_nodes_group(self, label_maps: Dict[str, Dict[str, List[Dict]]]) -> Optional[svg.G]:
         """Create the nodes group with nested ports and labels."""
         owners_with_labels = {lbl["owner"] for lbl in self.labels if lbl.get("text")}
         nodes_root = svg.G(id="nodes", elements=[])
@@ -406,7 +592,14 @@ class mElk:
         port_label_map = label_maps["port"]
 
         for node in self.nodes:
-            node_group = svg.G(id=node["id"], class_="node", elements=[])
+            node_classes = ["node"]
+            node_type = node["raw"].get("type")
+            if node_type:
+                node_classes.append(str(node_type))
+
+            node_group = svg.G(
+                id=node["id"], class_=" ".join(node_classes), elements=[]
+            )
 
             # Node shape
             rect = svg.Rect(
@@ -419,6 +612,13 @@ class mElk:
                 rx=self.node_style.get("rx"),
             )
             node_group.elements.append(rect)
+
+            # Centered icon (if provided via node["raw"]["icon"]).
+            icon_name = node["raw"].get("icon")
+            if icon_name:
+                icon_el = self._icon_element(str(icon_name), node)
+                if icon_el:
+                    node_group.elements.append(icon_el)
 
             # Node labels
             node_labels_g = svg.G(class_="labels", elements=[])
@@ -458,17 +658,22 @@ class mElk:
                 port_labels_g = svg.G(class_="labels", elements=[])
                 for lbl in port_label_map.get(port["id"], []):
                     port_labels_g.elements.append(self._label_to_text(lbl))
-                port_g.elements.append(port_labels_g)
+                if port_labels_g.elements:
+                    port_g.elements.append(port_labels_g)
 
                 ports_g.elements.append(port_g)
 
-            node_group.elements.append(ports_g)
+            if ports_g.elements:
+                node_group.elements.append(ports_g)
 
             nodes_root.elements.append(node_group)
 
+        if not nodes_root.elements:
+            return None
+
         return nodes_root
 
-    def _build_edges_group(self, label_maps: Dict[str, Dict[str, List[Dict]]]) -> svg.G:
+    def _build_edges_group(self, label_maps: Dict[str, Dict[str, List[Dict]]]) -> Optional[svg.G]:
         """Create edges group with per-edge subgroups and labels."""
         edge_labels = label_maps["edge"]
         edges_root = svg.G(id="edges", elements=[])
@@ -476,7 +681,12 @@ class mElk:
         for entry in self.edges:
             edge = entry["edge"]
             offset = entry["offset"]
-            edge_group = svg.G(id=edge.get("id"), class_="edge", elements=[])
+            edge_classes = ["edge"]
+            etype = self._edge_type(edge)
+            if etype:
+                edge_classes.append(str(etype))
+
+            edge_group = svg.G(id=edge.get("id"), class_=" ".join(edge_classes), elements=[])
             edge_thickness = self._edge_thickness(edge) or self.edge_style["stroke_width"]
 
             sections = edge.get("sections") or []
@@ -522,9 +732,14 @@ class mElk:
             labels_g = svg.G(class_="labels", elements=[])
             for lbl in edge_labels.get(edge.get("id", ""), []):
                 labels_g.elements.append(self._label_to_text(lbl))
-            edge_group.elements.append(labels_g)
+            if labels_g.elements:
+                edge_group.elements.append(labels_g)
 
-            edges_root.elements.append(edge_group)
+            if edge_group.elements:
+                edges_root.elements.append(edge_group)
+
+        if not edges_root.elements:
+            return None
 
         return edges_root
 
@@ -631,4 +846,4 @@ class mElk:
         }
 
 
-__all__ = ["mElk"]
+__all__ = ["ElkGraphSvg"]

@@ -1,51 +1,68 @@
 {
     "id": "canvas",
     "layoutOptions": {
-        "algorithm": "layered",
-        "direction": "RIGHT",
-        "nodeLabels.placement": "[INSIDE, V_CENTER, H_CENTER]",
-        "portConstraints": "FIXED_ORDER",
-        "aspectRatio": 1.414,
-        "zoomToFit": true
+        "org.eclipse.elk.portLabels.placement": "[OUTSIDE]",
+        "org.eclipse.elk.nodeLabels.placement": "[H_CENTER, V_CENTER, INSIDE]",
+        "org.eclipse.elk.algorithm": "layered",
+        "org.eclipse.elk.nodeSize.constraints": "[]",
+        "org.eclipse.elk.aspectRatio": "1.414",
+        "org.eclipse.elk.zoomToFit": "true",
+        "org.eclipse.elk.portConstraints": "FIXED_ORDER",
+        "org.eclipse.elk.nodeSize.options": "[DEFAULT_MINIMUM_SIZE]"
     },
     "children": [
         {
             "id": "bgp_nuk_1",
-            "_type": "router",
+            "type": "router",
             "width": 50,
             "height": 50,
             "labels": [
-                { "text": "BGP-NUK-1", "properties": { "font.size": 6 } },
-                { "text": "ASR9k", "properties": { "font.size": 4 } }
+                {
+                    "text": "BGP-NUK-1",
+                    "height": 4,
+                    "properties": { "font.size": 6 }
+                },
+                { 
+                    "text": "ASR9k",
+                    "properties": { "font.size": 4 }
+                }
             ],
             "ports": [
                 {
                     "id": "bgp_nuk_1_0",
-                    "width": 4,
-                    "height": 4,
+                    "width": 2,
+                    "height": 2,
                     "labels": [{ "text": "Te0/0/0/0", "properties": { "port.index": 0, "font.size": 4 } }]
                 },
                 {
                     "id": "bgp_nuk_1_1",
+                    "width": 2,
+                    "height": 2,
                     "labels": [{ "text": "Te0/0/0/1", "properties": { "port.index": -1, "font.size": 4 } }]
                 },
                 {
                     "id": "bgp_nuk_1_2",
+                    "width": 2,
+                    "height": 2,
                     "labels": [{ "text": "Te0/0/0/2", "properties": { "port.index": -2, "font.size": 4 } }]
                 },
                 {
                     "id": "bgp_nuk_1_3",
+                    "width": 2,
+                    "height": 2,
                     "labels": [{ "text": "Te0/0/0/3", "properties": { "port.index": -3, "font.size": 4 } }]
                 }
             ],
             "properties": {
-                "nodeLabels.placement": "[INSIDE, V_CENTER, H_CENTER]",
+                "_nodeLabels.placement": "[INSIDE, V_CENTER, H_CENTER]",
+                "nodeLabels.placement": "[OUTSIDE, V_BOTTOM, H_CENTER,H_PRIORITY]",
                 "portConstraints": "FIXED_ORDER",
                 "portLabels.placement": "INSIDE"
             }
         },
         {
             "id": "bgp_nuk_2",
+            "type": "server",
             "width": 50,
             "height": 50,
             "labels": [{ "text": "BGP-NUK-2", "properties": { "font.size": 6 } }],
@@ -74,6 +91,7 @@
         },
         {
             "id": "pe_nuk_1",
+            "type": "switch",
             "width": 50,
             "height": 50,
             "labels": [{ "text": "PE-NUK-1", "properties": { "font.size": 6 } }],
@@ -94,6 +112,7 @@
         },
         {
             "id": "pe_nuk_2",
+            "type": "firewall",
             "width": 50,
             "height": 50,
             "labels": [{ "text": "PE-NUK-2", "properties": { "font.size": 6 } }],
@@ -116,45 +135,51 @@
     "edges": [
         {
             "id": "E1",
+            "type": "10G",
             "sources": [ "bgp_nuk_1_0" ],
             "targets": [ "bgp_nuk_2_0" ],
-            "labels": [{ "text": "uplink", "properties": { "font.size": 4, "edgeLabels.inline": true } }],
-            "properties": { "edge.type": "UNDIRECTED", "edge.thickness": 1 }
+            "labels": [{ "text": "uplink", "properties": { "font.size": 4, "edgeLabels.inline": false } }],
+            "properties": { "edge.type": "UNDIRECTED", "edge.thickness": 0.5 }
         },
         {
             "id": "E2",
+            "type": "10G",
             "sources": [ "bgp_nuk_1_1" ],
             "targets": [ "bgp_nuk_2_1" ],
-            "labels": [{ "text": "peer1", "properties": { "font.size": 4, "edgeLabels.inline": true } }],
-            "properties": { "edge.type": "NONE", "edge.thickness": 0.7 }
+            "labels": [{ "text": "peer1", "properties": { "font.size": 4, "edgeLabels.inline": false } }],
+            "properties": { "edge.type": "NONE", "edge.thickness": 0.5 }
         },
         {
             "id": "E3",
+            "type": "10G",
             "sources": [ "bgp_nuk_1_2" ],
             "targets": [ "pe_nuk_1_0" ],
-            "labels": [{ "text": "peer2", "properties": { "font.size": 4, "edgeLabels.inline": true } }],
-            "properties": { "edge.type": "NONE", "edge.thickness": 0.7 }
+            "labels": [{ "text": "peer2", "properties": { "font.size": 4, "edgeLabels.inline": false } }],
+            "properties": { "edge.type": "NONE", "edge.thickness": 0.5 }
         },
         {
             "id": "E4",
+            "type": "10G",
             "sources": [ "bgp_nuk_1_3" ],
             "targets": [ "pe_nuk_2_0" ],
-            "labels": [{ "text": "peer3", "properties": { "font.size": 4, "edgeLabels.inline": true } }],
-            "properties": { "edge.type": "NONE", "edge.thickness": 0.7 }
+            "labels": [{ "text": "peer3", "properties": { "font.size": 4, "edgeLabels.inline": false } }],
+            "properties": { "edge.type": "NONE", "edge.thickness": 0.5 }
         },
         {
             "id": "E5",
+            "type": "10G",
             "sources": [ "bgp_nuk_2_2" ],
             "targets": [ "pe_nuk_1_1" ],
-            "labels": [{ "text": "peer4", "properties": { "font.size": 4, "edgeLabels.inline": true } }],
-            "properties": { "edge.type": "NONE", "edge.thickness": 0.7 }
+            "labels": [{ "text": "peer4", "properties": { "font.size": 4, "edgeLabels.inline": false } }],
+            "properties": { "edge.type": "NONE", "edge.thickness": 0.5 }
         },
         {
             "id": "E6",
+            "type": "10G",
             "sources": [ "bgp_nuk_2_3" ],
             "targets": [ "pe_nuk_2_1" ],
-            "labels": [{ "text": "peer", "properties": { "font.size": 4, "edgeLabels.inline": true } }],
-            "properties": { "edge.type": "NONE", "edge.thickness": 0.7 }
+            "labels": [{ "text": "peer", "properties": { "font.size": 4, "edgeLabels.inline": false } }],
+            "properties": { "edge.type": "NONE", "edge.thickness": 0.5 }
         }
   ]
 }

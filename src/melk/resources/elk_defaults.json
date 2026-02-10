@@ -1,0 +1,50 @@
+{
+    "layoutOptions": {
+        "org.eclipse.elk.portLabels.placement": "[OUTSIDE]",
+        "org.eclipse.elk.nodeLabels.placement": "[H_CENTER, V_CENTER, INSIDE]",
+        "org.eclipse.elk.algorithm": "layered",
+        "org.eclipse.elk.nodeSize.constraints": "[]",
+        "org.eclipse.elk.aspectRatio": "1.414",
+        "org.eclipse.elk.zoomToFit": "true",
+        "org.eclipse.elk.portConstraints": "FIXED_ORDER",
+        "org.eclipse.elk.nodeSize.options": "[DEFAULT_MINIMUM_SIZE]"
+    },
+    "nodes": {
+        "width": 50,
+        "height": 50,
+        "labels": [
+            {
+                "height": 4,
+                "properties": { "font.size": 6 }
+            }
+        ],
+        "ports": {
+            "width": 2,
+            "height": 2,
+            "labels": {
+                "properties": {
+                    "port.index": 0,
+                    "font.size": 4
+                }
+            }
+        },
+        "properties": {
+            "_nodeLabels.placement": "[INSIDE, V_CENTER, H_CENTER]",
+            "nodeLabels.placement": "[OUTSIDE, V_BOTTOM, H_CENTER,H_PRIORITY]",
+            "portConstraints": "FIXED_ORDER",
+            "portLabels.placement": "INSIDE"
+        }
+    },
+    "edges": {
+        "labels": {
+            "properties": {
+                "font.size": 4,
+                "edgeLabels.inline": false
+            }
+        },
+        "properties": {
+            "edge.type": "UNDIRECTED",
+            "edge.thickness": 0.5
+        }
+    }
+}

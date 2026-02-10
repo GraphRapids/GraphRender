@@ -62,7 +62,7 @@ set SAVE_DIR=
 goto repoSetup
 
 :WinNTGetScriptDir
-set BASEDIR=%~dp0\..
+for %%i in ("%~dp0..") do set "BASEDIR=%%~fi"
 
 :repoSetup
 set REPO=
@@ -72,7 +72,7 @@ if "%JAVACMD%"=="" set JAVACMD=java
 
 if "%REPO%"=="" set REPO=%BASEDIR%\repo
 
-set CLASSPATH="%BASEDIR%"\etc;"%REPO%"\org\eclipse\elk\org.eclipse.elk.graph.json\0.4.1\org.eclipse.elk.graph.json-0.4.1.jar;"%REPO%"\com\google\guava\guava\19.0-rc3\guava-19.0-rc3.jar;"%REPO%"\com\google\code\gson\gson\2.7\gson-2.7.jar;"%REPO%"\org\eclipse\elk\org.eclipse.elk.core\0.4.1\org.eclipse.elk.core-0.4.1.jar;"%REPO%"\org\eclipse\elk\org.eclipse.elk.graph\0.4.1\org.eclipse.elk.graph-0.4.1.jar;"%REPO%"\org\eclipse\emf\org.eclipse.emf.common\2.12.0\org.eclipse.emf.common-2.12.0.jar;"%REPO%"\org\eclipse\emf\org.eclipse.emf.ecore\2.12.0\org.eclipse.emf.ecore-2.12.0.jar;"%REPO%"\org\eclipse\emf\org.eclipse.emf.ecore.xmi\2.12.0\org.eclipse.emf.ecore.xmi-2.12.0.jar;"%REPO%"\org\eclipse\xtext\org.eclipse.xtext.xbase.lib\2.12.0\org.eclipse.xtext.xbase.lib-2.12.0.jar;"%REPO%"\org\eclipse\xtend\org.eclipse.xtend.lib\2.12.0\org.eclipse.xtend.lib-2.12.0.jar;"%REPO%"\org\eclipse\xtend\org.eclipse.xtend.lib.macro\2.12.0\org.eclipse.xtend.lib.macro-2.12.0.jar;"%REPO%"\commons-cli\commons-cli\1.4\commons-cli-1.4.jar;"%REPO%"\org\eclipse\elk\org.eclipse.elk.alg.layered\0.4.1\org.eclipse.elk.alg.layered-0.4.1.jar;"%REPO%"\org\eclipse\elk\org.eclipse.elk.alg.common\0.4.1\org.eclipse.elk.alg.common-0.4.1.jar;"%REPO%"\com\craigjb\elkjson\0.1\elkjson-0.1.jar
+set CLASSPATH="%BASEDIR%"\etc;"%REPO%"\org\eclipse\elk\org.eclipse.elk.graph.json\0.11.0\org.eclipse.elk.graph.json-0.11.0.jar;"%REPO%"\com\google\guava\guava\33.5.0-jre\guava-33.5.0-jre.jar;"%REPO%"\com\google\guava\failureaccess\1.0.3\failureaccess-1.0.3.jar;"%REPO%"\com\google\guava\listenablefuture\9999.0-empty-to-avoid-conflict-with-guava\listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar;"%REPO%"\org\jspecify\jspecify\1.0.0\jspecify-1.0.0.jar;"%REPO%"\com\google\errorprone\error_prone_annotations\2.41.0\error_prone_annotations-2.41.0.jar;"%REPO%"\com\google\j2objc\j2objc-annotations\3.1\j2objc-annotations-3.1.jar;"%REPO%"\com\google\code\gson\gson\2.13.2\gson-2.13.2.jar;"%REPO%"\org\eclipse\elk\org.eclipse.elk.core\0.11.0\org.eclipse.elk.core-0.11.0.jar;"%REPO%"\org\eclipse\elk\org.eclipse.elk.graph\0.11.0\org.eclipse.elk.graph-0.11.0.jar;"%REPO%"\org\eclipse\emf\org.eclipse.emf.common\2.12.0\org.eclipse.emf.common-2.12.0.jar;"%REPO%"\org\eclipse\emf\org.eclipse.emf.ecore\2.12.0\org.eclipse.emf.ecore-2.12.0.jar;"%REPO%"\org\eclipse\emf\org.eclipse.emf.ecore.xmi\2.12.0\org.eclipse.emf.ecore.xmi-2.12.0.jar;"%REPO%"\org\eclipse\xtext\org.eclipse.xtext.xbase.lib\2.36.0\org.eclipse.xtext.xbase.lib-2.36.0.jar;"%REPO%"\org\eclipse\xtend\org.eclipse.xtend.lib\2.36.0\org.eclipse.xtend.lib-2.36.0.jar;"%REPO%"\org\eclipse\xtend\org.eclipse.xtend.lib.macro\2.36.0\org.eclipse.xtend.lib.macro-2.36.0.jar;"%REPO%"\org\eclipse\elk\org.eclipse.elk.alg.layered\0.11.0\org.eclipse.elk.alg.layered-0.11.0.jar;"%REPO%"\org\eclipse\elk\org.eclipse.elk.alg.common\0.11.0\org.eclipse.elk.alg.common-0.11.0.jar;"%REPO%"\commons-cli\commons-cli\1.11.0\commons-cli-1.11.0.jar;"%REPO%"\com\craigjb\elkjson\0.1\elkjson-0.1.jar
 
 set ENDORSED_DIR=
 if NOT "%ENDORSED_DIR%" == "" set CLASSPATH="%BASEDIR%"\%ENDORSED_DIR%\*;%CLASSPATH%

@@ -1,0 +1,120 @@
+{
+    "id": "canvas",
+    "layoutOptions": {
+        "org.eclipse.elk.portLabels.placement": "[OUTSIDE]",
+        "org.eclipse.elk.nodeLabels.placement": "[H_CENTER, V_BOTTOM, OUTSIDE, H_PRIORITY]",
+        "org.eclipse.elk.algorithm": "layered",
+        "org.eclipse.elk.nodeSize.constraints": "[]",
+        "org.eclipse.elk.layered.layering.strategy": "NETWORK_SIMPLEX",
+        "org.eclipse.elk.aspectRatio": "1.414",
+        "org.eclipse.elk.zoomToFit": "true",
+        "org.eclipse.elk.nodeSize.options": "[DEFAULT_MINIMUM_SIZE]",
+        "direction": "RIGHT"
+    },
+    "children": [
+        {
+            "id": "node_1",
+            "type": "router",
+            "icon": "mdi:router",
+            "width": 50,
+            "height": 50,
+            "labels": [
+                {
+                    "text": "BGP-NUK-1",
+                    "width": 100,
+                    "height": 16,
+                    "properties": {
+                        "font.size": 16
+                    }
+                }
+            ],
+            "ports": [
+                {
+                    "id": "eth0",
+                    "properties": {
+                        "port.side": "EAST",
+                        "port.index": "0"
+                    },
+                    "width": 2.0,
+                    "height": 2.0
+                },
+                {
+                    "id": "eth1",
+                    "properties": {
+                        "port.side": "WEST",
+                        "port.index": "-1"
+                    },
+                    "width": 2.0,
+                    "height": 2.0
+                }
+            ],
+            "properties": {
+                "portConstraints": "FIXED_ORDER",
+                "nodeLabels.placement": "[OUTSIDE, V_BOTTOM, H_CENTER, H_PRIORITY]"
+            }
+        },
+        {
+            "id": "node_2",
+            "type": "router",
+            "icon": "mdi:router",
+            "width": 50,
+            "height": 50,
+            "labels": [
+                {
+                    "text": "BGP-NUK-2",
+                    "width": 100,
+                    "height": 16,
+                    "properties": {
+                        "font.size": 16
+                    }
+                }
+            ],
+            "ports": [
+                {
+                    "id": "node_2_eth0",
+                    "properties": {
+                        "port.side": "EAST",
+                        "port.index": "0"
+                    },
+                    "width": 2.0,
+                    "height": 2.0
+                },
+                {
+                    "id": "node_2_eth1",
+                    "properties": {
+                        "port.side": "WEST",
+                        "port.index": "-1"
+                    },
+                    "width": 2.0,
+                    "height": 2.0
+                }
+            ],
+            "properties": {
+                "portConstraints": "FIXED_ORDER",
+                "nodeLabels.placement": "[OUTSIDE, V_BOTTOM, H_CENTER, H_PRIORITY]"
+            }
+        }
+    ],
+    "edges": [
+        {
+            "id": "E1",
+            "sources": [ "node_1" ],
+            "targets": [ "node_2" ],
+            "labels": [
+                {
+                    "text": "Uplink",
+                    "height": 10,
+                    "width":100,
+                    "properties": {
+                        "font.size": 10,
+                        "edgeLabels.inline": false
+                    }
+                }
+            ],
+            "properties": {
+                "edge.type": "UNDIRECTED",
+                "edge.thickness": 1
+            }
+        }
+    ]
+}

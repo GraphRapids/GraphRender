@@ -1,0 +1,98 @@
+@use 'variables';
+
+@mixin add_node_group($type, $group) {
+  #nodes {
+    .node {
+      &.#{$type} {
+        >rect {
+          fill: var(--c-group-#{$group}-primary);
+        }
+        >.labels {
+          >text {
+            fill: var(--c-group-#{$group}-secondary);
+          }
+        }
+        >.ports {
+          >.port {
+            >.labels {
+              text {
+                fill: var(--c-group-#{$group}-secondary);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+svg {
+  background: var(--c-background);
+  font-family: var(--font-family);
+  color: var(--c-text);
+}
+
+#canvas {
+  fill: var(--c-background);
+}
+
+#nodes {
+  .node {
+    >rect {
+      fill: var(--c-node-fill);
+      stroke: var(--c-node-stroke);
+      rx: var(--node-radius);
+    }
+    >.labels {
+      >text {
+        fill: var(--c-text);
+      }
+      >text:first-of-type {
+        dominant-baseline: middle;
+      }
+      >text:nth-of-type(2) {
+        dominant-baseline: hanging;
+      }
+    }
+    >.ports {
+      >.port {
+        >rect {
+          fill: var(--c-stroke);
+          stroke: var(--c-stroke);
+        }
+        >.labels {
+          >text {
+            fill: var(--c-text);
+            dominant-baseline: middle;
+          }
+        }
+      }
+    }
+  }
+}
+
+#edges {
+  >.edge {
+    >polyline {
+      stroke: var(--c-edge-stroke);
+      stroke-linejoin: round;
+      fill: none;
+    }
+    >circle {
+      fill: none;
+      stroke: none; 
+    }
+
+    .labels {
+      text {
+        fill: var(--c-edge-stroke);
+      }
+    }
+  }
+}
+
+@include add_node_group("router", 1);
+@include add_node_group("switch", 2);
+@include add_node_group("server", 3);
+@include add_node_group("firewall", 4);
+
