@@ -10,6 +10,27 @@ import tempfile
 from pathlib import Path
 from typing import List, Optional
 
+from enum import Enum
+
+
+class ElkLayoutProvider(Enum):
+    DISCO = ("disco", "DisCoLayoutProvider")
+    FORCE = ("force", "ForceLayoutProvider")
+    FORCE_STRESS = ("force.stress", "StressLayoutProvider")
+    GRAPHVIZ_LAYOUTER = ("graphviz.layouter", "GraphvizLayoutProvider")
+    LAYERED = ("layered", "LayeredLayoutProvider")
+    LIBAVOID = ("libavoid", "LibavoidLayoutProvider")
+    MRTREE = ("mrtree", "TreeLayoutProvider")
+    RADIAL = ("radial", "RadialLayoutProvider")
+    RECTPACKING = ("rectpacking", "RectPackingLayoutProvider")
+    SPOREOVERLAP = ("spore", "OverlapRemovalLayoutProvider")
+    SPORESHRINK = ("spore", "ShrinkTreeLayoutProvider")
+    TOPDOWNPACKING = ("topdownpacking", "TopdownpackingLayoutProvider")
+    VERTIFLEX = ("vertiflex", "VertiFlexLayoutProvider")
+
+    def __init__(self, package: str, provider: str):
+        self.package = package
+        self.provider = provider
 
 class ElkJsonLayout:
     """
@@ -23,15 +44,13 @@ class ElkJsonLayout:
         self,
         elkjson_bin: str | Path | None = None,
         *,
-        default_layout_provider: str = "LayeredLayoutProvider",
-        default_layout_package: str = "layered",
+        default_layout_provider: ElkLayoutProvider = ElkLayoutProvider.LAYERED,
         timeout: int = 30,
     ) -> None:
         root = Path(__file__).resolve().parents[2]
         default_bin = root / "elkjson" / "appassembler" / "bin" / "elkjson"
         self.elkjson_bin = Path(elkjson_bin) if elkjson_bin else default_bin
         self.default_layout_provider = default_layout_provider
-        self.default_layout_package = default_layout_package
         self.timeout = timeout
 
     def layout_file(
@@ -40,8 +59,7 @@ class ElkJsonLayout:
         output_path: str | Path | None = None,
         *,
         pretty_json: bool = True,
-        layout_provider: Optional[str] = None,
-        layout_package: Optional[str] = None,
+        layout_provider: Optional[ElkLayoutProvider] = None,
         extra_args: Optional[List[str]] = None,
     ) -> Path:
         """
@@ -71,11 +89,8 @@ class ElkJsonLayout:
             args.append("--pretty-json")
 
         provider = layout_provider or self.default_layout_provider
-        package = layout_package or self.default_layout_package
-        if provider:
-            args += ["--layout-provider", provider]
-        if package:
-            args += ["--layout-package", package]
+        args += ["--layout-provider", provider.provider]
+        args += ["--layout-package", provider.package]
 
         if extra_args:
             args += list(extra_args)
@@ -95,8 +110,7 @@ class ElkJsonLayout:
         input_json: str,
         *,
         pretty_json: bool = True,
-        layout_provider: Optional[str] = None,
-        layout_package: Optional[str] = None,
+        layout_provider: Optional[ElkLayoutProvider] = None,
         extra_args: Optional[List[str]] = None,
     ) -> str:
         """
@@ -115,7 +129,6 @@ class ElkJsonLayout:
                 output_path=out_path,
                 pretty_json=pretty_json,
                 layout_provider=layout_provider,
-                layout_package=layout_package,
                 extra_args=extra_args,
             )
 
@@ -126,8 +139,7 @@ class ElkJsonLayout:
         input_path: str | Path,
         *,
         pretty_json: bool = True,
-        layout_provider: Optional[str] = None,
-        layout_package: Optional[str] = None,
+        layout_provider: Optional[ElkLayoutProvider] = None,
         extra_args: Optional[List[str]] = None,
     ) -> dict:
         """
@@ -137,10 +149,9 @@ class ElkJsonLayout:
             Path(input_path).read_text(),
             pretty_json=pretty_json,
             layout_provider=layout_provider,
-            layout_package=layout_package,
             extra_args=extra_args,
         )
         return json.loads(layout_str)
 
 
-__all__ = ["ElkJsonLayout"]
+__all__ = ["ElkJsonLayout", "ElkLayoutProvider"]

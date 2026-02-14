@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT / "src"))
 
 from elkpydantic.builder import MinimalGraphIn, build_canvas,  _load_settings, ElkSettings, sample_settings
-from melk import ElkGraphSvg, ElkJsonLayout
+from melk import ElkGraphSvg, ElkJsonLayout, ElkLayoutProvider
 
 def enrich_with_elkpydantic(input_path: Path, settings: ElkSettings) -> str:
     """Convert a minimal graph JSON into ELK-compatible JSON."""
@@ -20,7 +20,7 @@ def enrich_with_elkpydantic(input_path: Path, settings: ElkSettings) -> str:
 
 def main() -> None:
     # Allow overriding the input file; default to the bundled example.
-    input_arg = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("examples/example2.json")
+    input_arg = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("examples/udland.json")
     input_path = input_arg if input_arg.is_absolute() else (ROOT / input_arg)
 
     settings = _load_settings("examples/elk_settings.example.toml")
@@ -31,7 +31,7 @@ def main() -> None:
     enriched_path.write_text(enriched_json)
 
     layout = ElkJsonLayout()
-    laid_out_json = layout.layout_json(enriched_json)
+    laid_out_json = layout.layout_json(enriched_json, layout_provider=ElkLayoutProvider.LAYERED)
     layout_path = input_path.with_name(f"{input_path.stem}.layout.json")
     layout_path.write_text(laid_out_json)
 

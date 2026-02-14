@@ -12,7 +12,9 @@ running a layout algorithm) into a styled SVG that includes:
 
 from __future__ import annotations
 
+import hashlib
 import json
+import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple
@@ -79,6 +81,7 @@ class ElkGraphSvg:
         self.node_lookup: Dict[str, Dict] = {}
         self._icon_cache: Dict[str, Optional[str]] = {}
         self._icon_geom_cache: Dict[str, Optional[Tuple[str, float, float]]] = {}
+        self._icon_def_ids: Dict[str, str] = {}
         self._defs_cache: Optional[svg.Defs] = None
 
         self._collect_graph(self.graph, offset=(0, 0))
@@ -189,53 +192,97 @@ class ElkGraphSvg:
             self._icon_cache[icon_name] = None
             return None
 
+    def _icon_def_id(self, icon_name: str) -> str:
+        """Return a stable, sanitized id for an icon definition."""
+        existing = self._icon_def_ids.get(icon_name)
+        if existing:
+            return existing
+
+        safe = re.sub(r"[^a-zA-Z0-9_-]", "-", icon_name).strip("-_")
+        if not safe:
+            safe = "icon"
+        candidate = f"icon-{safe}"
+        if candidate in self._icon_def_ids.values():
+            suffix = hashlib.sha1(icon_name.encode("utf-8")).hexdigest()[:8]
+            candidate = f"{candidate}-{suffix}"
+
+        self._icon_def_ids[icon_name] = candidate
+        return candidate
+
+    def _icon_geometry(self, icon_name: str) -> Optional[Tuple[str, float, float]]:
+        """Return (inner_svg, width, height) for an icon, cached by name."""
+        if icon_name in self._icon_geom_cache:
+            return self._icon_geom_cache[icon_name]
+
+        svg_text = self._fetch_icon_svg(icon_name)
+        if not svg_text:
+            self._icon_geom_cache[icon_name] = None
+            return None
+        try:
+            root = ET.fromstring(svg_text)
+        except ET.ParseError:
+            self._icon_geom_cache[icon_name] = None
+            return None
+
+        view_box = root.get("viewBox")
+        vb_w = vb_h = None
+        if view_box:
+            parts = view_box.split()
+            if len(parts) == 4:
+                try:
+                    vb_w, vb_h = float(parts[2]), float(parts[3])
+                except ValueError:
+                    vb_w = vb_h = None
+
+        if vb_w is None or vb_h is None:
+            try:
+                vb_w = float((root.get("width") or "0").replace("px", ""))
+                vb_h = float((root.get("height") or "0").replace("px", ""))
+            except ValueError:
+                self._icon_geom_cache[icon_name] = None
+                return None
+
+        if vb_w <= 0 or vb_h <= 0:
+            self._icon_geom_cache[icon_name] = None
+            return None
+
+        inner = "".join(ET.tostring(child, encoding="unicode") for child in list(root))
+        cached = (inner, vb_w, vb_h)
+        self._icon_geom_cache[icon_name] = cached
+        return cached
+
+    def _raw_element(self, text: str):
+        """Return a svg.Raw (or inline fallback) for a raw SVG fragment."""
+        raw_cls = getattr(svg, "Raw", None)
+        if raw_cls:
+            try:
+                return raw_cls(text)
+            except Exception:
+                pass
+
+        class _InlineRaw:
+            def __init__(self, raw_text: str) -> None:
+                self.text = raw_text
+
+            def as_str(self) -> str:
+                return self.text
+
+            def __str__(self) -> str:
+                return self.text
+
+        return _InlineRaw(text)
+
     def _icon_element(self, icon_name: str, node: Dict):
         """
         Return a scaled svg.Raw (or fallback object) that centers the icon
         within the node rectangle. Parsing and viewBox extraction are cached
         per icon to avoid repeated XML parsing.
         """
-        cached = self._icon_geom_cache.get(icon_name)
+        cached = self._icon_geometry(icon_name)
         if cached is None:
-            svg_text = self._fetch_icon_svg(icon_name)
-            if not svg_text:
-                self._icon_geom_cache[icon_name] = None
-                return None
-            try:
-                root = ET.fromstring(svg_text)
-            except ET.ParseError:
-                self._icon_geom_cache[icon_name] = None
-                return None
-
-            view_box = root.get("viewBox")
-            vb_w = vb_h = None
-            if view_box:
-                parts = view_box.split()
-                if len(parts) == 4:
-                    try:
-                        vb_w, vb_h = float(parts[2]), float(parts[3])
-                    except ValueError:
-                        vb_w = vb_h = None
-
-            if vb_w is None or vb_h is None:
-                try:
-                    vb_w = float((root.get("width") or "0").replace("px", ""))
-                    vb_h = float((root.get("height") or "0").replace("px", ""))
-                except ValueError:
-                    self._icon_geom_cache[icon_name] = None
-                    return None
-
-            if vb_w <= 0 or vb_h <= 0:
-                self._icon_geom_cache[icon_name] = None
-                return None
-
-            inner = "".join(ET.tostring(child, encoding="unicode") for child in list(root))
-            cached = (inner, vb_w, vb_h)
-            self._icon_geom_cache[icon_name] = cached
-        elif cached is None:
             return None
 
-        inner, vb_w, vb_h = cached
+        _, vb_w, vb_h = cached
 
         margin = 4
         target_w = max(node["width"] - margin * 2, 1)
@@ -245,29 +292,14 @@ class ElkGraphSvg:
         cx = node["x"] + node["width"] / 2
         cy = node["y"] + node["height"] / 2
 
+        icon_id = self._icon_def_id(icon_name)
         g_str = (
             f'<g class="icon" transform="translate({cx},{cy}) '
-            f'scale({scale}) translate({-vb_w/2},{-vb_h/2})">{inner}</g>'
+            f'scale({scale}) translate({-vb_w/2},{-vb_h/2})">'
+            f'<use href="#{icon_id}"/></g>'
         )
 
-        raw_cls = getattr(svg, "Raw", None)
-        if raw_cls:
-            try:
-                return raw_cls(g_str)
-            except Exception:
-                pass
-
-        class _InlineRaw:
-            def __init__(self, text: str) -> None:
-                self.text = text
-
-            def as_str(self) -> str:
-                return self.text
-
-            def __str__(self) -> str:
-                return self.text
-
-        return _InlineRaw(g_str)
+        return self._raw_element(g_str)
 
     def _label_to_text(self, lbl: Dict) -> svg.Text:
         """Create an svg.Text element for a label dict."""
@@ -560,8 +592,33 @@ class ElkGraphSvg:
             ],
         )
 
-        self._defs_cache = svg.Defs(elements=[arrow, open_arrow, triangle_hollow])
+        elements = [arrow, open_arrow, triangle_hollow]
+        elements.extend(self._build_icon_defs())
+        self._defs_cache = svg.Defs(elements=elements)
         return self._defs_cache
+
+    def _build_icon_defs(self) -> List[object]:
+        """Define icon glyphs once in <defs> for reuse via <use>."""
+        icon_defs: List[object] = []
+        seen: set[str] = set()
+
+        for node in self.nodes:
+            icon_name = node["raw"].get("icon")
+            if not icon_name:
+                continue
+            icon_name = str(icon_name)
+            if icon_name in seen:
+                continue
+            seen.add(icon_name)
+
+            geom = self._icon_geometry(icon_name)
+            if not geom:
+                continue
+            inner, _, _ = geom
+            icon_id = self._icon_def_id(icon_name)
+            icon_defs.append(self._raw_element(f'<g id="{icon_id}">{inner}</g>'))
+
+        return icon_defs
 
     def _build_background_rect(self, canvas_width: Number, canvas_height: Number):
         """Optional background rect covering the root graph area."""
