@@ -89,35 +89,42 @@ class ElkGraphSvg:
     # ------------------------------------------------------------------ #
     # Helpers
     # ------------------------------------------------------------------ #
+    def _option_value(self, item: Dict, *keys: str) -> Optional[object]:
+        """Read an ELK option from layoutOptions/properties with stable precedence."""
+        opts = item.get("layoutOptions") or {}
+        props = item.get("properties") or {}
+        for key in keys:
+            if key in opts:
+                return opts[key]
+            if key in props:
+                return props[key]
+        return None
+
     def _font_size(self, item: Dict) -> Optional[Number]:
         """Extract an optional font size from ELK options/properties."""
-        for keyspace in ("layoutOptions", "properties"):
-            opts = item.get(keyspace) or {}
-            for key in (
-                "org.eclipse.elk.font.size",
-                "elk.font.size",
-                "font.size",
-            ):
-                if key in opts:
-                    try:
-                        return float(opts[key])
-                    except (TypeError, ValueError):
-                        return None
-        return None
+        value = self._option_value(
+            item,
+            "org.eclipse.elk.font.size",
+            "elk.font.size",
+            "font.size",
+        )
+        if value is None:
+            return None
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return None
 
     def _port_side(self, port: Dict) -> Optional[str]:
         """Return the port side (WEST/EAST/NORTH/SOUTH) if present."""
-        for keyspace in ("layoutOptions", "properties"):
-            opts = port.get(keyspace) or {}
-            for key in (
-                "org.eclipse.elk.port.side",
-                "elk.port.side",
-                "port.side",
-            ):
-                if key in opts:
-                    val = opts[key]
-                    if isinstance(val, str):
-                        return val.upper()
+        val = self._option_value(
+            port,
+            "org.eclipse.elk.port.side",
+            "elk.port.side",
+            "port.side",
+        )
+        if isinstance(val, str):
+            return val.upper()
         return None
 
     def _label_text_anchor(self, owner: Optional[str]) -> str:
@@ -153,20 +160,19 @@ class ElkGraphSvg:
 
     def _edge_thickness(self, edge: Dict) -> Optional[Number]:
         """Extract an optional stroke width for an edge."""
-        for keyspace in ("layoutOptions", "properties"):
-            opts = edge.get(keyspace) or {}
-            for key in (
-                "org.eclipse.elk.edge.thickness",
-                "elk.edge.thickness",
-                "edge.thickness",
-                "stroke.width",
-            ):
-                if key in opts:
-                    try:
-                        return float(opts[key])
-                    except (TypeError, ValueError):
-                        return None
-        return None
+        value = self._option_value(
+            edge,
+            "org.eclipse.elk.edge.thickness",
+            "elk.edge.thickness",
+            "edge.thickness",
+            "stroke.width",
+        )
+        if value is None:
+            return None
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return None
 
     def _edge_type(self, edge: Dict) -> Optional[str]:
         """Return the edge type when set directly on the edge object."""
@@ -808,8 +814,14 @@ class ElkGraphSvg:
         Map ELK's org.eclipse.elk.edge.type option to SVG styling. Defaults to
         the previous behavior (filled arrow at the target).
         """
-        opts = edge.get("layoutOptions") or {}
-        edge_type = opts.get("org.eclipse.elk.edge.type") or opts.get("elk.edge.type")
+        edge_type = (
+            self._option_value(
+                edge,
+                "org.eclipse.elk.edge.type",
+                "elk.edge.type",
+            )
+            or edge.get("type")
+        )
         edge_type = str(edge_type).upper() if edge_type else ""
 
         # Defaults preserve backward compatibility.

@@ -5,12 +5,11 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "melk"
 version = "0.1.0"
-description = "Convert ELK JSON layouts to SVG with bundled defaults and layout runner."
+description = "Render laid-out ELK JSON graphs to SVG with optional CSS/SCSS/SASS theming."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "svg.py>=1.0",
-    "ElkPydantic @ git+ssh://git@github.com/Faerkeren/ElkPydantic.git@main"
+    "svg.py>=1.0"
 ]
 authors = [
     { name = "melk contributors" },

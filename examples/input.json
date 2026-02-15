@@ -1,0 +1,387 @@
+{
+  "id": "canvas",
+  "layoutOptions": {
+    "org.eclipse.elk.aspectRatio": 1.414,
+    "org.eclipse.elk.direction": "RIGHT",
+    "org.eclipse.elk.hierarchyHandling": "INCLUDE_CHILDREN",
+    "org.eclipse.elk.algorithm": "layered",
+    "org.eclipse.elk.layered.layering.strategy": "NETWORK_SIMPLEX",
+    "org.eclipse.elk.zoomToFit": true,
+    "org.eclipse.elk.nodeSize.constraints": "MINIMUM_SIZE",
+    "org.eclipse.elk.nodeSize.options": "[DEFAULT_MINIMUM_SIZE,COMPUTE_PADDING,MINIMUM_SIZE_ACCOUNTS_FOR_PADDING]"
+  },
+  "children": [
+    {
+      "id": "subgraph_1",
+      "type": "subgraph",
+      "labels": [
+        {
+          "text": "Subgraph 1",
+          "width": 150,
+          "height": 16,
+          "properties": {
+            "org.eclipse.elk.font.size": 16
+          },
+          "x": 160,
+          "y": 5
+        }
+      ],
+      "ports": [],
+      "children": [
+        {
+          "id": "node_1",
+          "type": "router",
+          "icon": "mdi:router",
+          "width": 50,
+          "height": 50,
+          "labels": [
+            {
+              "text": "Node 1",
+              "width": 150,
+              "height": 16,
+              "properties": {
+                "org.eclipse.elk.font.size": 16
+              },
+              "x": -50,
+              "y": 55
+            }
+          ],
+          "ports": [
+            {
+              "id": "node_1_hu0_0_0_0",
+              "width": 2,
+              "height": 2,
+              "labels": [
+                {
+                  "text": "Hu0/0/0/0",
+                  "width": 50,
+                  "height": 6,
+                  "properties": {
+                    "org.eclipse.elk.font.size": 6
+                  },
+                  "x": 3,
+                  "y": 3
+                }
+              ],
+              "properties": {
+                "org.eclipse.elk.port.index": 0
+              },
+              "x": 50,
+              "y": 24
+            }
+          ],
+          "children": [],
+          "edges": [],
+          "properties": {
+            "org.eclipse.elk.portConstraints": "[FIXED_ORDER]",
+            "org.eclipse.elk.portLabels.placement": "[OUTSIDE, NEXT_TO_PORT_IF_POSSIBLE]",
+            "org.eclipse.elk.nodeLabels.placement": "[OUTSIDE, V_BOTTOM, H_CENTER, H_PRIORITY]"
+          },
+          "x": 62,
+          "y": 33
+        },
+        {
+          "id": "node_2",
+          "type": "switch",
+          "icon": "clarity:network-switch-line",
+          "width": 50,
+          "height": 50,
+          "labels": [
+            {
+              "text": "Node 2",
+              "width": 150,
+              "height": 16,
+              "properties": {
+                "org.eclipse.elk.font.size": 16
+              },
+              "x": -50,
+              "y": 55
+            }
+          ],
+          "ports": [
+            {
+              "id": "node_2_hu0_0_0_0",
+              "width": 2,
+              "height": 2,
+              "labels": [
+                {
+                  "text": "Hu0/0/0/0",
+                  "width": 50,
+                  "height": 6,
+                  "properties": {
+                    "org.eclipse.elk.font.size": 6
+                  },
+                  "x": -51,
+                  "y": 3
+                }
+              ],
+              "properties": {
+                "org.eclipse.elk.port.index": 0
+              },
+              "x": -2,
+              "y": 24
+            }
+          ],
+          "children": [],
+          "edges": [],
+          "properties": {
+            "org.eclipse.elk.portConstraints": "[FIXED_ORDER]",
+            "org.eclipse.elk.portLabels.placement": "[OUTSIDE, NEXT_TO_PORT_IF_POSSIBLE]",
+            "org.eclipse.elk.nodeLabels.placement": "[OUTSIDE, V_BOTTOM, H_CENTER, H_PRIORITY]"
+          },
+          "x": 358,
+          "y": 33
+        }
+      ],
+      "edges": [
+        {
+          "id": "fabric_1",
+          "type": "100G",
+          "sources": [
+            "node_1_hu0_0_0_0"
+          ],
+          "targets": [
+            "node_2_hu0_0_0_0"
+          ],
+          "labels": [
+            {
+              "text": "Fabric 1",
+              "width": 100,
+              "height": 10,
+              "properties": {
+                "org.eclipse.elk.font.size": 10,
+                "org.eclipse.elk.edgeLabels.inline": false
+              },
+              "x": 185,
+              "y": 61
+            }
+          ],
+          "properties": {
+            "org.eclipse.elk.edge.type": "UNDIRECTED",
+            "org.eclipse.elk.edge.thickness": 1
+          },
+          "sections": [
+            {
+              "id": "fabric_1_s0",
+              "startPoint": {
+                "x": 114,
+                "y": 58
+              },
+              "endPoint": {
+                "x": 356,
+                "y": 58
+              },
+              "incomingShape": "node_1_hu0_0_0_0",
+              "outgoingShape": "node_2_hu0_0_0_0"
+            }
+          ],
+          "container": "subgraph_1"
+        }
+      ],
+      "properties": {
+        "org.eclipse.elk.portConstraints": "[FIXED_ORDER]",
+        "org.eclipse.elk.portLabels.placement": "[OUTSIDE, NEXT_TO_PORT_IF_POSSIBLE]",
+        "org.eclipse.elk.nodeLabels.placement": "[INSIDE, V_TOP, H_CENTER]"
+      },
+      "x": 12,
+      "y": 12,
+      "width": 470,
+      "height": 116
+    },
+    {
+      "id": "node_3",
+      "type": "router",
+      "icon": "mdi:router",
+      "width": 50,
+      "height": 50,
+      "labels": [
+        {
+          "text": "Node 3",
+          "width": 150,
+          "height": 16,
+          "properties": {
+            "org.eclipse.elk.font.size": 16
+          },
+          "x": -50,
+          "y": 55
+        }
+      ],
+      "ports": [
+        {
+          "id": "node_3_eth0",
+          "width": 2,
+          "height": 2,
+          "labels": [
+            {
+              "text": "eth0",
+              "width": 50,
+              "height": 6,
+              "properties": {
+                "org.eclipse.elk.font.size": 6
+              },
+              "x": 3,
+              "y": 3
+            }
+          ],
+          "properties": {
+            "org.eclipse.elk.port.index": 0
+          },
+          "x": 50,
+          "y": 24
+        }
+      ],
+      "children": [],
+      "edges": [],
+      "properties": {
+        "org.eclipse.elk.portConstraints": "[FIXED_ORDER]",
+        "org.eclipse.elk.portLabels.placement": "[OUTSIDE, NEXT_TO_PORT_IF_POSSIBLE]",
+        "org.eclipse.elk.nodeLabels.placement": "[OUTSIDE, V_BOTTOM, H_CENTER, H_PRIORITY]"
+      },
+      "x": 672,
+      "y": 45
+    },
+    {
+      "id": "node_4",
+      "type": "firewall",
+      "icon": "clarity:firewall-line",
+      "width": 50,
+      "height": 50,
+      "labels": [
+        {
+          "text": "Node 4",
+          "width": 150,
+          "height": 16,
+          "properties": {
+            "org.eclipse.elk.font.size": 16
+          },
+          "x": -50,
+          "y": 55
+        }
+      ],
+      "ports": [
+        {
+          "id": "node_4_eth1",
+          "width": 2,
+          "height": 2,
+          "labels": [
+            {
+              "text": "eth1",
+              "width": 50,
+              "height": 6,
+              "properties": {
+                "org.eclipse.elk.font.size": 6
+              },
+              "x": -51,
+              "y": 3
+            }
+          ],
+          "properties": {
+            "org.eclipse.elk.port.index": 0
+          },
+          "x": -2,
+          "y": 24
+        }
+      ],
+      "children": [],
+      "edges": [],
+      "properties": {
+        "org.eclipse.elk.portConstraints": "[FIXED_ORDER]",
+        "org.eclipse.elk.portLabels.placement": "[OUTSIDE, NEXT_TO_PORT_IF_POSSIBLE]",
+        "org.eclipse.elk.nodeLabels.placement": "[OUTSIDE, V_BOTTOM, H_CENTER, H_PRIORITY]"
+      },
+      "x": 968,
+      "y": 45
+    }
+  ],
+  "edges": [
+    {
+      "id": "uplink_1",
+      "type": "MPLS",
+      "sources": [
+        "subgraph_1"
+      ],
+      "targets": [
+        "node_3"
+      ],
+      "labels": [
+        {
+          "text": "Uplink 1",
+          "width": 100,
+          "height": 10,
+          "properties": {
+            "org.eclipse.elk.font.size": 10,
+            "org.eclipse.elk.edgeLabels.inline": false
+          },
+          "x": 502,
+          "y": 73
+        }
+      ],
+      "properties": {
+        "org.eclipse.elk.edge.type": "UNDIRECTED",
+        "org.eclipse.elk.edge.thickness": 1
+      },
+      "sections": [
+        {
+          "id": "uplink_1_s0",
+          "startPoint": {
+            "x": 482,
+            "y": 70
+          },
+          "endPoint": {
+            "x": 672,
+            "y": 70
+          },
+          "incomingShape": "subgraph_1",
+          "outgoingShape": "node_3"
+        }
+      ],
+      "container": "canvas"
+    },
+    {
+      "id": "edge_eece9612",
+      "sources": [
+        "node_3_eth0"
+      ],
+      "targets": [
+        "node_4_eth1"
+      ],
+      "labels": [
+        {
+          "text": "Edge",
+          "width": 100,
+          "height": 10,
+          "properties": {
+            "org.eclipse.elk.font.size": 10,
+            "org.eclipse.elk.edgeLabels.inline": false
+          },
+          "x": 795,
+          "y": 73
+        }
+      ],
+      "properties": {
+        "org.eclipse.elk.edge.type": "UNDIRECTED",
+        "org.eclipse.elk.edge.thickness": 1
+      },
+      "sections": [
+        {
+          "id": "edge_eece9612_s0",
+          "startPoint": {
+            "x": 724,
+            "y": 70
+          },
+          "endPoint": {
+            "x": 966,
+            "y": 70
+          },
+          "incomingShape": "node_3_eth0",
+          "outgoingShape": "node_4_eth1"
+        }
+      ],
+      "container": "canvas"
+    }
+  ],
+  "x": 0,
+  "y": 0,
+  "width": 1080,
+  "height": 140
+}
