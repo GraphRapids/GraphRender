@@ -54,7 +54,7 @@ svg {
         fill: var(--c-text);
       }
       >text:first-of-type {
-        dominant-baseline: middle;
+        dominant-baseline: auto;
       }
       >text:nth-of-type(2) {
         dominant-baseline: hanging;
@@ -70,8 +70,24 @@ svg {
           >text {
             fill: var(--c-text);
             dominant-baseline: middle;
+            text-anchor: middle;
+          }
+          >rect.background {
+            fill: var(--c-label-fill);
+            fill-opacity: var(--label-fill-opacity);
           }
         }
+      }
+    }
+    &.subgraph {
+      >rect {
+        fill: var(--c-subgraph-background);
+      }
+      >.labels {
+        >text {
+          fill: var(--c-text);
+        }
+        
       }
     }
   }
@@ -92,7 +108,13 @@ svg {
     .labels {
       text {
         fill: var(--c-edge-stroke);
+        dominant-baseline: central;
+        text-anchor: middle;
       }
+      >rect.background {
+          fill: var(--c-label-fill);
+          fill-opacity: var(--label-fill-opacity);
+        }
     }
   }
 }

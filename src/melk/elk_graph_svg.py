@@ -115,21 +115,44 @@ class ElkGraphSvg:
         except (TypeError, ValueError):
             return None
 
-    def _port_side(self, port: Dict) -> Optional[str]:
-        """Return the port side (WEST/EAST/NORTH/SOUTH) if present."""
-        val = self._option_value(
-            port,
-            "org.eclipse.elk.port.side",
-            "elk.port.side",
-            "port.side",
-        )
-        if isinstance(val, str):
-            return val.upper()
-        return None
+    def _port_side(
+        self,
+        node: Dict,
+        port: Dict,
+        *,
+        port_abs_x: Number,
+        port_abs_y: Number,
+    ) -> Optional[str]:
+        """Infer port side (WEST/EAST/NORTH/SOUTH) from port position vs node bounds."""
+        try:
+            node_x = float(node.get("x", 0))
+            node_y = float(node.get("y", 0))
+            node_w = float(node.get("width", 0))
+            node_h = float(node.get("height", 0))
+            port_w = float(port.get("width", 0))
+            port_h = float(port.get("height", 0))
+            cx = float(port_abs_x) + (port_w / 2)
+            cy = float(port_abs_y) + (port_h / 2)
+        except (TypeError, ValueError):
+            return None
 
-    def _label_text_anchor(self, owner: Optional[str]) -> str:
-        """Determine text-anchor based on owner type (ports care about side)."""
-        if owner and owner in self.port_lookup:
+        distances = {
+            "WEST": abs(cx - node_x),
+            "EAST": abs(cx - (node_x + node_w)),
+            "NORTH": abs(cy - node_y),
+            "SOUTH": abs(cy - (node_y + node_h)),
+        }
+        return min(distances, key=distances.get)
+
+    def _label_text_anchor(
+        self,
+        owner: Optional[str],
+        owner_kind: Optional[str] = None,
+    ) -> str:
+        """Determine text-anchor. Port labels are side-aware, others stay centered."""
+        if owner_kind is None and owner and owner in self.port_lookup:
+            owner_kind = "port"
+        if owner_kind == "port" and owner and owner in self.port_lookup:
             side = self.port_lookup[owner].get("side")
             if side == "WEST":
                 return "end"
@@ -142,10 +165,30 @@ class ElkGraphSvg:
         node_labels: Dict[str, List[Dict]] = {}
         port_labels: Dict[str, List[Dict]] = {}
         edge_labels: Dict[str, List[Dict]] = {}
+        edge_owner_ids = {
+            edge.get("id")
+            for entry in self.edges
+            for edge in [entry.get("edge") or {}]
+            if edge.get("id") is not None
+        }
 
         for lbl in self.labels:
             owner = lbl.get("owner")
-            if owner in self.port_lookup:
+            owner_kind = lbl.get("owner_kind")
+            if owner_kind == "node":
+                node_labels.setdefault(owner or "", []).append(lbl)
+                continue
+            if owner_kind == "port":
+                port_labels.setdefault(owner or "", []).append(lbl)
+                continue
+            if owner_kind == "edge":
+                edge_labels.setdefault(owner or "", []).append(lbl)
+                continue
+
+            # Edge labels take precedence when ids overlap with node/port ids.
+            if owner in edge_owner_ids:
+                edge_labels.setdefault(owner, []).append(lbl)
+            elif owner in self.port_lookup:
                 port_labels.setdefault(owner, []).append(lbl)
             elif owner in self.node_lookup:
                 node_labels.setdefault(owner, []).append(lbl)
@@ -307,20 +350,23 @@ class ElkGraphSvg:
 
         return self._raw_element(g_str)
 
-    def _label_to_text(self, lbl: Dict) -> svg.Text:
+    def _label_to_text(self, lbl: Dict, owner_kind: Optional[str] = None) -> svg.Text:
         """Create an svg.Text element for a label dict."""
         x = lbl["x"] + lbl.get("width", 0) / 2
         y = lbl["y"] + lbl.get("height", 0) / 2
         lbl_font_size = lbl.get("font_size") or self.font_size
-        text_anchor = self._label_text_anchor(lbl.get("owner"))
+        text_anchor = self._label_text_anchor(lbl.get("owner"), owner_kind=owner_kind)
         dominant_baseline = "middle"
         owner = lbl.get("owner")
-        if owner and owner in self.port_lookup:
-            side = self.port_lookup[owner].get("side")
-            if side == "SOUTH":
-                dominant_baseline = "text-top"
-            elif side == "NORTH":
-                dominant_baseline = "hanging"
+        if owner_kind is None and owner and owner in self.port_lookup:
+            owner_kind = "port"
+        if owner_kind == "port" and owner and owner in self.port_lookup:
+            port = self.port_lookup[owner]
+            port_center_y = port["y"] + port.get("height", 0) / 2
+            if y < port_center_y - 1e-6:
+                dominant_baseline = "text-before-edge"
+            elif y > port_center_y + 1e-6:
+                dominant_baseline = "text-after-edge"
         return svg.Text(
             text=lbl.get("text", ""),
             x=x,
@@ -329,6 +375,28 @@ class ElkGraphSvg:
             text_anchor=text_anchor,
             dominant_baseline=dominant_baseline,
             fill="#111",
+        )
+
+    def _label_background_rect(self, lbl: Dict) -> Optional[svg.Rect]:
+        """Build a label background rect from x/y/width/height."""
+        try:
+            x = float(lbl.get("x", 0))
+            y = float(lbl.get("y", 0))
+            width = float(lbl.get("width", 0))
+            height = float(lbl.get("height", 0))
+        except (TypeError, ValueError):
+            return None
+        if width <= 0 or height <= 0:
+            return None
+        return svg.Rect(
+            class_="background",
+            x=x,
+            y=y,
+            width=width,
+            height=height,
+            fill="none",
+            stroke="#111",
+            stroke_width=0.5,
         )
 
     # ------------------------------------------------------------------ #
@@ -412,13 +480,90 @@ class ElkGraphSvg:
 
         return _InlineStyle(css_text)
 
-    def to_string(self) -> str:
-        """Return the SVG as a string."""
-        return self.to_svg_element().as_str()
+    def _indent_xml_tree(
+        self, elem: ET.Element, *, indent: str = "  ", level: int = 0
+    ) -> None:
+        """Backport-style XML indentation for runtimes without ET.indent."""
+        children = list(elem)
+        if not children:
+            if level and (not elem.tail or not elem.tail.strip()):
+                elem.tail = "\n" + (indent * level)
+            return
 
-    def write(self, path: str | Path) -> None:
+        child_ws = "\n" + (indent * (level + 1))
+        parent_ws = "\n" + (indent * level)
+
+        if not elem.text or not elem.text.strip():
+            elem.text = child_ws
+
+        for child in children:
+            self._indent_xml_tree(child, indent=indent, level=level + 1)
+            if not child.tail or not child.tail.strip():
+                child.tail = child_ws
+
+        if not children[-1].tail or not children[-1].tail.strip():
+            children[-1].tail = parent_ws
+
+        if level and (not elem.tail or not elem.tail.strip()):
+            elem.tail = parent_ws
+
+    def _xml_local_name(self, tag: str) -> str:
+        """Return an element's local tag name without XML namespace."""
+        if "}" in tag:
+            return tag.rsplit("}", 1)[-1]
+        return tag
+
+    def _indent_style_blocks(
+        self, elem: ET.Element, *, indent: str = "  ", level: int = 0
+    ) -> None:
+        """
+        Force CSS to start on a new line and be indented relative to <style>.
+        """
+        if self._xml_local_name(elem.tag) == "style":
+            css_text = (elem.text or "").strip()
+            if css_text:
+                parent_prefix = indent * level
+                child_prefix = indent * (level + 1)
+                lines = css_text.splitlines()
+                formatted_lines = [
+                    (f"{child_prefix}{line}" if line else "")
+                    for line in lines
+                ]
+                elem.text = "\n" + "\n".join(formatted_lines) + "\n" + parent_prefix
+
+        for child in list(elem):
+            self._indent_style_blocks(child, indent=indent, level=level + 1)
+
+    def _pretty_xml(self, xml_text: str, *, indent: str = "  ") -> str:
+        """Return pretty-formatted XML when parsing succeeds."""
+        try:
+            root = ET.fromstring(xml_text)
+        except ET.ParseError:
+            return xml_text
+
+        indent_fn = getattr(ET, "indent", None)
+        if callable(indent_fn):
+            indent_fn(root, space=indent)
+        else:
+            self._indent_xml_tree(root, indent=indent)
+
+        self._indent_style_blocks(root, indent=indent)
+
+        return ET.tostring(root, encoding="unicode", short_empty_elements=True) + "\n"
+
+    def to_string(self, *, pretty: bool = True, indent: str = "  ") -> str:
+        """Return the SVG as a string."""
+        xml_text = self.to_svg_element().as_str()
+        if not pretty:
+            return xml_text
+        return self._pretty_xml(xml_text, indent=indent)
+
+    def write(self, path: str | Path, *, pretty: bool = True, indent: str = "  ") -> None:
         """Write the SVG to disk."""
-        Path(path).write_text(self.to_string())
+        Path(path).write_text(
+            self.to_string(pretty=pretty, indent=indent),
+            encoding="utf-8",
+        )
 
     # ------------------------------------------------------------------ #
     # Graph collection
@@ -457,6 +602,7 @@ class ElkGraphSvg:
             for label in node.get("labels", []):
                 self.labels.append(
                     {
+                        "owner_kind": "node",
                         "owner": node["id"],
                         "id": label.get("id"),
                         "text": label.get("text", ""),
@@ -470,15 +616,22 @@ class ElkGraphSvg:
 
             # Ports (coordinates relative to the node).
             for port in node.get("ports", []):
+                port_abs_x = abs_x + port.get("x", 0)
+                port_abs_y = abs_y + port.get("y", 0)
                 port_abs = {
                     "id": port["id"],
                     "owner": node["id"],
-                    "x": abs_x + port.get("x", 0),
-                    "y": abs_y + port.get("y", 0),
+                    "x": port_abs_x,
+                    "y": port_abs_y,
                     "width": port.get("width", 0),
                     "height": port.get("height", 0),
                     "raw": port,
-                    "side": self._port_side(port),
+                    "side": self._port_side(
+                        record,
+                        port,
+                        port_abs_x=port_abs_x,
+                        port_abs_y=port_abs_y,
+                    ),
                 }
                 self.port_lookup[port_abs["id"]] = port_abs
 
@@ -496,6 +649,7 @@ class ElkGraphSvg:
 
                     self.labels.append(
                         {
+                            "owner_kind": "port",
                             "owner": port["id"],
                             "id": label.get("id"),
                             "text": label.get("text", ""),
@@ -516,6 +670,7 @@ class ElkGraphSvg:
             for label in edge.get("labels", []):
                 self.labels.append(
                     {
+                        "owner_kind": "edge",
                         "owner": edge["id"],
                         "id": label.get("id"),
                         "text": label.get("text", ""),
@@ -686,7 +841,7 @@ class ElkGraphSvg:
             # Node labels
             node_labels_g = svg.G(class_="labels", elements=[])
             for lbl in node_label_map.get(node["id"], []):
-                node_labels_g.elements.append(self._label_to_text(lbl))
+                node_labels_g.elements.append(self._label_to_text(lbl, owner_kind="node"))
             if not node_labels_g.elements and node["id"] not in owners_with_labels:
                 center_x = node["x"] + node["width"] / 2
                 center_y = node["y"] + node["height"] / 2
@@ -720,7 +875,10 @@ class ElkGraphSvg:
 
                 port_labels_g = svg.G(class_="labels", elements=[])
                 for lbl in port_label_map.get(port["id"], []):
-                    port_labels_g.elements.append(self._label_to_text(lbl))
+                    bg_rect = self._label_background_rect(lbl)
+                    if bg_rect is not None:
+                        port_labels_g.elements.append(bg_rect)
+                    port_labels_g.elements.append(self._label_to_text(lbl, owner_kind="port"))
                 if port_labels_g.elements:
                     port_g.elements.append(port_labels_g)
 
@@ -794,7 +952,10 @@ class ElkGraphSvg:
             # Edge labels
             labels_g = svg.G(class_="labels", elements=[])
             for lbl in edge_labels.get(edge.get("id", ""), []):
-                labels_g.elements.append(self._label_to_text(lbl))
+                bg_rect = self._label_background_rect(lbl)
+                if bg_rect is not None:
+                    labels_g.elements.append(bg_rect)
+                labels_g.elements.append(self._label_to_text(lbl, owner_kind="edge"))
             if labels_g.elements:
                 edge_group.elements.append(labels_g)
 

@@ -25,12 +25,15 @@
   --c-node-fill: #4f77b7;
   --node-radius: 2px;
 
-  --c-cluster-background: light-dark(var(--c-light-cluster-background), var(--c-dark-cluster-background));
-  --cluster-opacity: 0.3;
-  --c-cluster-stroke: light-dark(var(--c-light-stroke), var(--c-dark-stroke));
-  --c-cluster-stroke-thickness: 2px;
-  --c-cluster-stroke-radius: 1ex;
-  --c-cluster-label-background: transparent;
+  --c-label-fill: var(--c-background);
+  --label-fill-opacity: 0.7;
+
+  --c-subgraph-background: light-dark(var(--c-light-cluster-background), var(--c-dark-cluster-background));
+  --subgraph-opacity: 0.3;
+  --c-subgraph-stroke: light-dark(var(--c-light-stroke), var(--c-dark-stroke));
+  --c-subgraph-stroke-thickness: 2px;
+  --c-subgraph-stroke-radius: 1ex;
+  --c-subgraph-label-background: transparent;
   
   --c-edge-stroke: light-dark(var(--c-light-stroke), var(--c-dark-stroke));
   --c-edgeLabel-background: light-dark(var(--c-light-edgeLabel-background), var(--c-dark-edgeLabel-background));
@@ -38,7 +41,7 @@
   --edge-thickness-normal: 3px;
   --edge-thickness-thick: 6px;
 
-  --font-family: "trebuchet ms", verdana, arial, sans-serif;
+  --font-family: Arial, Helvetica, sans-serif;
   --font-size: 16px;
   
   --c-group-1-primary: #ed2222;
