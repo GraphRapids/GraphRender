@@ -171,3 +171,7 @@ examples/                        # Example ELK input/output
 - `svg.py` for Python SVG element construction
 - Iconify for icon assets and API-based SVG retrieval
 - Dart Sass for SCSS/SASS theme compilation support
+
+## Third-Party Notices
+
+See `THIRD_PARTY_NOTICES.md` for dependency, tool, service, and icon set license notices.
