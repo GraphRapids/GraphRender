@@ -7,6 +7,7 @@ name = "GraphRender"
 version = "0.1.0"
 description = "Render laid-out ELK JSON graphs to SVG with optional CSS/SCSS/SASS theming."
 readme = "README.md"
+license = { file = "LICENSE" }
 requires-python = ">=3.10"
 dependencies = [
     "svg.py>=1.0"

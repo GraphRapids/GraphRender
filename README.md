@@ -1,5 +1,7 @@
 # GraphRender
 
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](./LICENSE)
+
 GraphRender converts **laid-out ELK JSON** into styled SVG diagrams.
 
 It is intended for pipelines where layout is already computed (for example by Eclipse Layout Kernel), and you want reliable SVG rendering with optional theming and icon support.
@@ -162,3 +164,10 @@ src/graphrender/resources/       # Bundled theme/assets
 themes/                          # SCSS theme source
 examples/                        # Example ELK input/output
 ```
+
+## Acknowledgements
+
+- Eclipse Layout Kernel (ELK) for graph layout modeling and options
+- `svg.py` for Python SVG element construction
+- Iconify for icon assets and API-based SVG retrieval
+- Dart Sass for SCSS/SASS theme compilation support
