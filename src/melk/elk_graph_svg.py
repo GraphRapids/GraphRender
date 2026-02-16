@@ -435,13 +435,13 @@ class ElkGraphSvg:
 
         label_maps = self._partition_labels()
 
-        nodes_group = self._build_nodes_group(label_maps)
-        if nodes_group is not None:
-            root.elements.append(nodes_group)
-
         edges_group = self._build_edges_group(label_maps)
         if edges_group is not None:
             root.elements.append(edges_group)
+
+        nodes_group = self._build_nodes_group(label_maps)
+        if nodes_group is not None:
+            root.elements.append(nodes_group)
 
         return root
 
