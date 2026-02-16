@@ -73,8 +73,10 @@ svg {
             text-anchor: middle;
           }
           >rect.background {
+            stroke: var(--c-edge-stroke);
             fill: var(--c-label-fill);
             fill-opacity: var(--label-fill-opacity);
+            rx:1px;
           }
         }
       }
@@ -112,9 +114,11 @@ svg {
         text-anchor: middle;
       }
       >rect.background {
-          fill: var(--c-label-fill);
-          fill-opacity: var(--label-fill-opacity);
-        }
+        stroke: var(--c-edge-stroke);
+        fill: var(--c-label-fill);
+        fill-opacity: var(--label-fill-opacity);
+        rx:1px;
+      }
     }
   }
 }

@@ -21,7 +21,7 @@
   --c-node-fill: #4f77b7;
   --node-radius: 2px;
   --c-label-fill: var(--c-background);
-  --label-fill-opacity: 0.7;
+  --label-fill-opacity: 0.8;
   --c-subgraph-background: light-dark(var(--c-light-cluster-background), var(--c-dark-cluster-background));
   --subgraph-opacity: 0.3;
   --c-subgraph-stroke: light-dark(var(--c-light-stroke), var(--c-dark-stroke));
@@ -98,8 +98,10 @@ svg {
   text-anchor: middle;
 }
 #nodes .node > .ports > .port > .labels > rect.background {
+  stroke: var(--c-edge-stroke);
   fill: var(--c-label-fill);
   fill-opacity: var(--label-fill-opacity);
+  rx: 1px;
 }
 #nodes .node.subgraph > rect {
   fill: var(--c-subgraph-background);
@@ -123,8 +125,10 @@ svg {
   text-anchor: middle;
 }
 #edges > .edge .labels > rect.background {
+  stroke: var(--c-edge-stroke);
   fill: var(--c-label-fill);
   fill-opacity: var(--label-fill-opacity);
+  rx: 1px;
 }
 
 /*
