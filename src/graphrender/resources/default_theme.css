@@ -83,7 +83,7 @@ svg {
   fill: var(--c-text);
 }
 #nodes .node > .labels > text:first-of-type {
-  dominant-baseline: auto;
+  dominant-baseline: middle;
 }
 #nodes .node > .labels > text:nth-of-type(2) {
   dominant-baseline: hanging;

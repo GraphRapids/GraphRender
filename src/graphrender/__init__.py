@@ -1,5 +1,5 @@
 """
-melk package initialization.
+GraphRender package initialization.
 Exports the ElkGraphSvg converter and resource helpers.
 """
 

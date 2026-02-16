@@ -50,11 +50,11 @@ svg {
       color: var(--c-node-icon);
     } 
     >.labels {
-      >text {
+      >text { 
         fill: var(--c-text);
       }
       >text:first-of-type {
-        dominant-baseline: auto;
+        dominant-baseline: middle;
       }
       >text:nth-of-type(2) {
         dominant-baseline: hanging;

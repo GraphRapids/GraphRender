@@ -7,7 +7,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT / "src"))
 
-from melk import ElkGraphSvg
+from graphrender import ElkGraphSvg
 
 
 def load_theme_css(theme_path: Path) -> str:

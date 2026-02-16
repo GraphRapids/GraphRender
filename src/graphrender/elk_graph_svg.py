@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -83,6 +84,7 @@ class ElkGraphSvg:
         self._icon_geom_cache: Dict[str, Optional[Tuple[str, float, float]]] = {}
         self._icon_def_ids: Dict[str, str] = {}
         self._defs_cache: Optional[svg.Defs] = None
+        self._icon_cache_dir: Optional[Path] = self._resolve_icon_cache_dir()
 
         self._collect_graph(self.graph, offset=(0, 0))
 
@@ -213,9 +215,12 @@ class ElkGraphSvg:
         if value is None:
             return None
         try:
-            return float(value)
+            parsed = float(value)
         except (TypeError, ValueError):
             return None
+        if parsed <= 0:
+            return 1.0
+        return parsed
 
     def _edge_type(self, edge: Dict) -> Optional[str]:
         """Return the edge type when set directly on the edge object."""
@@ -225,17 +230,103 @@ class ElkGraphSvg:
     # ------------------------------------------------------------------ #
     # Icons
     # ------------------------------------------------------------------ #
+    def _resolve_icon_cache_dir(self) -> Optional[Path]:
+        """
+        Resolve the persistent icon cache directory.
+
+        Override with GRAPHRENDER_ICON_CACHE_DIR. Set GRAPHRENDER_ICON_CACHE_DIR to an empty
+        string to disable disk caching.
+        """
+        raw = os.environ.get("GRAPHRENDER_ICON_CACHE_DIR")
+        if raw is not None:
+            raw = raw.strip()
+            if not raw:
+                return None
+            return Path(raw).expanduser()
+
+        xdg_cache = os.environ.get("XDG_CACHE_HOME")
+        if xdg_cache:
+            return Path(xdg_cache).expanduser() / "graphrender" / "icons"
+
+        local_appdata = os.environ.get("LOCALAPPDATA")
+        if local_appdata:
+            return Path(local_appdata).expanduser() / "graphrender" / "icons"
+
+        return Path.home() / ".cache" / "graphrender" / "icons"
+
+    def _icon_cache_path(self, icon_name: str) -> Optional[Path]:
+        """Return the cache filename for an icon."""
+        if self._icon_cache_dir is None:
+            return None
+        safe = re.sub(r"[^a-zA-Z0-9_-]", "-", icon_name).strip("-_")
+        if not safe:
+            safe = "icon"
+        digest = hashlib.sha1(icon_name.encode("utf-8")).hexdigest()[:12]
+        return self._icon_cache_dir / f"{safe}-{digest}.svg"
+
+    def _load_icon_svg_from_disk(self, icon_name: str) -> Optional[str]:
+        """Read an icon SVG from the persistent cache."""
+        path = self._icon_cache_path(icon_name)
+        if path is None:
+            return None
+        try:
+            if not path.exists():
+                return None
+            data = path.read_text(encoding="utf-8")
+            return data if data else None
+        except OSError:
+            return None
+
+    def _delete_icon_svg_from_disk(self, icon_name: str) -> None:
+        """Delete an icon SVG from disk cache (best effort)."""
+        path = self._icon_cache_path(icon_name)
+        if path is None:
+            return
+        try:
+            path.unlink(missing_ok=True)
+        except OSError:
+            return
+
+    def _looks_like_svg(self, svg_text: str) -> bool:
+        """Return True when the content parses as an <svg> document."""
+        try:
+            root = ET.fromstring(svg_text)
+        except ET.ParseError:
+            return False
+        tag = root.tag.rsplit("}", 1)[-1] if "}" in root.tag else root.tag
+        return tag == "svg"
+
+    def _store_icon_svg_to_disk(self, icon_name: str, svg_text: str) -> None:
+        """Persist an icon SVG to disk cache (best effort)."""
+        path = self._icon_cache_path(icon_name)
+        if path is None:
+            return
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(svg_text, encoding="utf-8")
+        except OSError:
+            return
+
     def _fetch_icon_svg(self, icon_name: str) -> Optional[str]:
-        """Download an Iconify SVG once and memoize the string."""
+        """Load Iconify SVG from memory, then disk cache, then network."""
         if icon_name in self._icon_cache:
             return self._icon_cache[icon_name]
 
+        disk_data = self._load_icon_svg_from_disk(icon_name)
+        if disk_data is not None:
+            if self._looks_like_svg(disk_data):
+                self._icon_cache[icon_name] = disk_data
+                return disk_data
+            # Auto-heal malformed disk cache by deleting and re-fetching.
+            self._delete_icon_svg_from_disk(icon_name)
+
         url = f"https://api.iconify.design/{icon_name}.svg"
         try:
-            req = Request(url, headers={"User-Agent": "melk/1.0"})
+            req = Request(url, headers={"User-Agent": "GraphRender/1.0"})
             with urlopen(req, timeout=5) as resp:  # type: ignore[arg-type]
                 data = resp.read().decode("utf-8")
                 self._icon_cache[icon_name] = data
+                self._store_icon_svg_to_disk(icon_name, data)
                 return data
         except (HTTPError, URLError, TimeoutError, ValueError):
             self._icon_cache[icon_name] = None
@@ -908,7 +999,9 @@ class ElkGraphSvg:
                 edge_classes.append(str(etype))
 
             edge_group = svg.G(id=edge.get("id"), class_=" ".join(edge_classes), elements=[])
-            edge_thickness = self._edge_thickness(edge) or self.edge_style["stroke_width"]
+            edge_thickness = self._edge_thickness(edge)
+            if edge_thickness is None:
+                edge_thickness = self.edge_style["stroke_width"]
 
             sections = edge.get("sections") or []
             if not sections:

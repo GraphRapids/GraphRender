@@ -1,4 +1,4 @@
-# melk
+# GraphRender
 
 Render laid-out ELK JSON to SVG.
 
@@ -21,5 +21,5 @@ Examples:
 ```bash
 python main.py examples/largenetwork.layout.json
 python main.py examples/largenetwork.layout.json --theme themes/theme.scss
-python main.py examples/largenetwork.layout.json --theme src/melk/resources/default_theme.css -o examples/largenetwork.custom.svg
+python main.py examples/largenetwork.layout.json --theme src/graphrender/resources/default_theme.css -o examples/largenetwork.custom.svg
 ```
