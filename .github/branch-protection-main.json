@@ -2,9 +2,12 @@
   "required_status_checks": {
     "strict": true,
     "contexts": [
-      "CI",
-      "Tests",
-      "Gitleaks"
+      "build / Build & Sanity (Python 3.12)",
+      "scan / Gitleaks",
+      "pytest / Pytest (Python 3.10)",
+      "pytest / Pytest (Python 3.11)",
+      "pytest / Pytest (Python 3.12)",
+      "pytest / Pytest (Python 3.13)"
     ]
   },
   "enforce_admins": false,
