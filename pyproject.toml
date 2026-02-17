@@ -7,13 +7,36 @@ name = "GraphRender"
 version = "0.1.0"
 description = "Render laid-out ELK JSON graphs to SVG with optional CSS/SCSS/SASS theming."
 readme = "README.md"
-license = { file = "LICENSE" }
+license = "Apache-2.0"
 requires-python = ">=3.10"
+keywords = ["svg", "graph", "elk", "diagram", "renderer"]
 dependencies = [
     "svg.py>=1.0"
 ]
 authors = [
     { name = "GraphRender contributors" },
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Multimedia :: Graphics",
+]
+
+[project.urls]
+Homepage = "https://github.com/Faerkeren/GraphRender"
+Repository = "https://github.com/Faerkeren/GraphRender"
+Issues = "https://github.com/Faerkeren/GraphRender/issues"
+Changelog = "https://github.com/Faerkeren/GraphRender/blob/main/CHANGELOG.md"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
 ]
 
 [tool.setuptools]
@@ -26,3 +49,8 @@ where = ["src"]
 graphrender = [
     "resources/*",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"

@@ -1,6 +1,9 @@
 # GraphRender
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](./LICENSE)
+[![CI](https://github.com/Faerkeren/GraphRender/actions/workflows/ci.yml/badge.svg)](https://github.com/Faerkeren/GraphRender/actions/workflows/ci.yml)
+[![Tests](https://github.com/Faerkeren/GraphRender/actions/workflows/test.yml/badge.svg)](https://github.com/Faerkeren/GraphRender/actions/workflows/test.yml)
+[![Secret Scan](https://github.com/Faerkeren/GraphRender/actions/workflows/gitleaks.yml/badge.svg)](https://github.com/Faerkeren/GraphRender/actions/workflows/gitleaks.yml)
 
 GraphRender converts **laid-out ELK JSON** into styled SVG diagrams.
 
@@ -132,7 +135,9 @@ Set it to an empty string to disable disk caching.
 
 ## Troubleshooting
 
-### `SCSS/SASS theme compilation requires the sass CLI in PATH`
+### `SCSS/SASS theme
+
+compilation requires the sass CLI in PATH`
 
 Install Dart Sass and ensure `sass` is available in your shell.
 
@@ -175,3 +180,18 @@ examples/                        # Example ELK input/output
 ## Third-Party Notices
 
 See `THIRD_PARTY_NOTICES.md` for dependency, tool, service, and icon set license notices.
+
+## Governance and Community
+
+- Security policy: `SECURITY.md`
+- Contribution guide: `CONTRIBUTING.md`
+- Code of conduct: `CODE_OF_CONDUCT.md`
+- Changelog: `CHANGELOG.md`
+- Release process: `RELEASE.md`
+
+## Automation
+
+- CI build and sanity checks: `.github/workflows/ci.yml`
+- Test matrix: `.github/workflows/test.yml`
+- Secret scanning (gitleaks): `.github/workflows/gitleaks.yml`
+- Dependency updates (Dependabot): `.github/dependabot.yml`
