@@ -14,6 +14,7 @@ It is intended for pipelines where layout is already computed and rendering must
 - Render nodes, ports, edges, and labels from ELK layout output
 - Support nested/compound graphs with coordinate normalization
 - Style output with embedded CSS or custom CSS/SCSS/SASS themes
+- Profile bundle adapter for canonical GraphAPI `renderCss`
 - Optional Iconify icon rendering with persistent disk cache
 - Pretty-formatted SVG output for readable diffs
 
@@ -69,6 +70,18 @@ renderer = GraphRender.from_file(
 
 renderer.write("output/output.svg")
 svg_text = renderer.to_string()
+
+# Profile-driven render configuration
+profile_bundle = {
+    "profileId": "runtime",
+    "profileVersion": 2,
+    "checksum": "abc",
+    "renderCss": ".node.router > rect { fill: #334455; }",
+}
+renderer = GraphRender.from_profile_bundle(
+    graph={"id": "root", "children": [], "edges": []},
+    profile_bundle=profile_bundle,
+)
 ```
 
 Main constructor options:
@@ -80,6 +93,16 @@ Main constructor options:
 - `font_size`
 - `embed_theme`
 - `theme_css`
+
+## Profile Adapter + Class Alignment
+
+`graphrender.profile` provides:
+
+- `resolve_profile_render_bundle()`
+- `render_kwargs_from_profile_bundle()`
+- `css_class_token()`
+
+`css_class_token()` normalizes `node.type`/`edge.type` values into CSS-safe class names, so profile CSS selectors remain deterministic.
 
 ## Input Expectations
 

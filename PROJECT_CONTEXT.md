@@ -8,6 +8,7 @@ GraphRender transforms laid-out ELK JSON into SVG output with theme and icon sup
 - Support consistent theming via CSS/SCSS/SASS inputs.
 - Keep icon fetching/caching reliable and recoverable.
 - Preserve readable output and predictable styling behavior.
+- Support profile-driven CSS ingestion from GraphAPI bundles.
 
 ## Package Snapshot
 - Python package: `graphrender`
@@ -24,6 +25,7 @@ Inputs:
 
 Outputs:
 - SVG text or SVG file output.
+- Profile adapter kwargs for `GraphRender` (`theme_css`, metadata-preserving contract).
 
 Behavior expectations:
 - Respect existing layout coordinates (no layout pass inside renderer).
@@ -42,11 +44,13 @@ Icon handling:
 
 Configuration:
 - `GRAPHRENDER_ICON_CACHE_DIR` controls persistent cache location.
+- Profile adapter module: `src/graphrender/profile.py`.
 
 ## Integration Notes
 - Upstream layout provider: GraphLoom.
 - Service integration: GraphAPI.
 - Canonical theme source: GraphTheme.
+- Class token normalization keeps `node.type` / `edge.type` CSS behavior stable.
 
 ## Testing Expectations
 - `python -m pytest -q`

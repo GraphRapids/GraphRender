@@ -22,6 +22,7 @@ from typing import Dict, Iterable, List, Optional, Tuple
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 from .resources import default_theme_css
+from .profile import css_class_token
 
 import svg
 
@@ -507,6 +508,15 @@ class GraphRender:
         data = json.loads(json_str)
         return cls(data, **kwargs)
 
+    @classmethod
+    def from_profile_bundle(cls, graph: Dict, profile_bundle: Dict, **kwargs) -> "GraphRender":
+        """Construct GraphRender using renderCss resolved from a profile bundle."""
+        from .profile import render_kwargs_from_profile_bundle
+
+        options = render_kwargs_from_profile_bundle(profile_bundle)
+        options.update(kwargs)
+        return cls(graph, **options)
+
     # ------------------------------------------------------------------ #
     # Public API
     # ------------------------------------------------------------------ #
@@ -910,7 +920,7 @@ class GraphRender:
             node_classes = ["node"]
             node_type = node["raw"].get("type")
             if node_type:
-                node_classes.append(str(node_type))
+                node_classes.append(css_class_token(node_type))
 
             node_group = svg.G(
                 id=node["id"], class_=" ".join(node_classes), elements=[]
@@ -1002,7 +1012,7 @@ class GraphRender:
             edge_classes = ["edge"]
             etype = self._edge_type(edge)
             if etype:
-                edge_classes.append(str(etype))
+                edge_classes.append(css_class_token(etype))
 
             edge_group = svg.G(id=edge.get("id"), class_=" ".join(edge_classes), elements=[])
             edge_thickness = self._edge_thickness(edge)
