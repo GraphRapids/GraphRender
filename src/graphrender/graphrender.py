@@ -1075,9 +1075,10 @@ class GraphRender:
             # Edge labels
             labels_g = svg.G(class_="labels", elements=[])
             for lbl in edge_labels.get(edge.get("id", ""), []):
-                bg_rect = self._label_background_rect(lbl)
-                if bg_rect is not None:
-                    labels_g.elements.append(bg_rect)
+                if lbl.get("text"):
+                    bg_rect = self._label_background_rect(lbl)
+                    if bg_rect is not None:
+                        labels_g.elements.append(bg_rect)
                 labels_g.elements.append(self._label_to_text(lbl, owner_kind="edge"))
             if labels_g.elements:
                 edge_group.elements.append(labels_g)

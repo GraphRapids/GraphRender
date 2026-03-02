@@ -123,6 +123,21 @@ def test_edge_labels_render_background_and_text():
     assert [t.text for t in edge_label_texts] == ["edge-1"]
 
 
+def test_edge_labels_skip_background_when_text_is_empty():
+    graph = deep_copy(base_graph())
+    graph["edges"][0]["labels"][0]["text"] = ""
+
+    renderer = GraphRender(graph, embed_theme=False)
+    root = parse_svg(renderer.to_string())
+
+    edge_label_rects = root.findall(
+        ".//svg:g[@id='e1']//svg:g[@class='labels']//svg:rect[@class='background']",
+        SVG_NS,
+    )
+
+    assert len(edge_label_rects) == 0
+
+
 def test_fallback_section_renders_polyline_when_sections_missing():
     graph = deep_copy(base_graph())
     graph["edges"][0].pop("sections", None)
