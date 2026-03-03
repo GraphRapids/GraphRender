@@ -846,7 +846,7 @@ class GraphRender:
                 svg.Path(
                     d=[svg.MoveTo(0, 0), svg.LineTo(10, 5), svg.LineTo(0, 10)],
                     fill="none",
-                    stroke=self.edge_style["stroke"],
+                    stroke="currentColor",
                     stroke_width=self.edge_style["stroke_width"],
                 )
             ],
