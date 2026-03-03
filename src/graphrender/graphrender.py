@@ -852,6 +852,27 @@ class GraphRender:
             ],
         )
 
+        dependency_open_arrow = svg.Marker(
+            id="arrow-open-dependency",
+            markerWidth=7,
+            markerHeight=7,
+            refX=6,
+            refY=3.5,
+            orient="auto",
+            markerUnits="strokeWidth",
+            elements=[
+                svg.Path(
+                    d=[svg.MoveTo(0.75, 0.75), svg.LineTo(6, 3.5), svg.LineTo(0.75, 6.25)],
+                    fill="none",
+                    stroke="currentColor",
+                    stroke_width=1,
+                    stroke_linecap="round",
+                    stroke_linejoin="round",
+                    stroke_dasharray="none",
+                )
+            ],
+        )
+
         triangle_hollow = svg.Marker(
             id="triangle-hollow",
             markerWidth=12,
@@ -868,14 +889,14 @@ class GraphRender:
                         svg.LineTo(0, 12),
                         svg.Z(),
                     ],
-                    fill="white",
-                    stroke=self.edge_style["stroke"],
+                    fill="none",
+                    stroke="currentColor",
                     stroke_width=self.edge_style["stroke_width"],
                 )
             ],
         )
 
-        elements = [arrow, open_arrow, triangle_hollow]
+        elements = [arrow, open_arrow, dependency_open_arrow, triangle_hollow]
         elements.extend(self._build_icon_defs())
         self._defs_cache = svg.Defs(elements=elements)
         return self._defs_cache
@@ -1124,7 +1145,10 @@ class GraphRender:
             render.update({"marker_end": "url(#arrow-open)"})
         elif edge_type == "DEPENDENCY":
             render.update(
-                {"marker_end": "url(#arrow-open)", "stroke_dasharray": "6 3"}
+                {
+                    "marker_end": "url(#arrow-open-dependency)",
+                    "stroke_dasharray": "6 3",
+                }
             )
         elif edge_type == "GENERALIZATION":
             render.update({"marker_end": "url(#triangle-hollow)"})

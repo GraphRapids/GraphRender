@@ -127,7 +127,7 @@ def test_edge_thickness_normalizes_non_positive_and_invalid_values():
         ("UNDIRECTED", None, None),
         ("DIRECTED", "url(#arrow)", None),
         ("ASSOCIATION", "url(#arrow-open)", None),
-        ("DEPENDENCY", "url(#arrow-open)", "6 3"),
+        ("DEPENDENCY", "url(#arrow-open-dependency)", "6 3"),
         ("GENERALIZATION", "url(#triangle-hollow)", None),
     ],
 )

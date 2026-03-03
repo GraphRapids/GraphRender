@@ -193,7 +193,43 @@ def test_edge_dependency_type_sets_dasharray_and_marker():
 
     assert polyline is not None
     assert polyline.get("stroke-dasharray") == "6 3"
-    assert polyline.get("marker-end") == "url(#arrow-open)"
+    assert polyline.get("marker-end") == "url(#arrow-open-dependency)"
+
+
+def test_dependency_marker_is_smaller_and_solid():
+    renderer = GraphRender(base_graph(), embed_theme=False)
+    root = parse_svg(renderer.to_string())
+
+    marker = root.find(".//svg:marker[@id='arrow-open-dependency']", SVG_NS)
+
+    assert marker is not None
+    assert marker.get("markerUnits") == "strokeWidth"
+    assert marker.get("markerWidth") == "7"
+    assert marker.get("markerHeight") == "7"
+
+    marker_path = marker.find("./svg:path", SVG_NS)
+
+    assert marker_path is not None
+    assert marker_path.get("stroke-dasharray") == "none"
+    assert marker_path.get("stroke") == "currentColor"
+    assert marker_path.get("stroke-width") == "1"
+    assert marker_path.get("stroke-linecap") == "round"
+    assert marker_path.get("stroke-linejoin") == "round"
+
+
+def test_triangle_hollow_marker_uses_current_color_and_no_fill():
+    renderer = GraphRender(base_graph(), embed_theme=False)
+    root = parse_svg(renderer.to_string())
+
+    marker = root.find(".//svg:marker[@id='triangle-hollow']", SVG_NS)
+
+    assert marker is not None
+
+    marker_path = marker.find("./svg:path", SVG_NS)
+
+    assert marker_path is not None
+    assert marker_path.get("stroke") == "currentColor"
+    assert marker_path.get("fill") == "none"
 
 
 def test_style_element_absent_when_embed_theme_disabled():
