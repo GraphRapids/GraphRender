@@ -133,58 +133,55 @@ export GRAPHRENDER_ICON_CACHE_DIR=/path/to/cache
 
 If unset, GraphRender uses platform cache locations (for example `~/.cache/graphrender/icons` on Linux/macOS).
 
-Set `GRAPHRENDER_ICON_CACHE_DIR` to an empty string to disable persistent disk caching entirely.
-
-## HTTP Server
-
-GraphRender includes a lightweight HTTP server for service-oriented deployments:
-
-```bash
-python -m graphrender.server
-```
-
-The server exposes:
-
-- `GET /health` — returns `{"status": "ok"}` (HTTP 200)
-- `POST /render` — accepts ELK JSON body, returns SVG
-
-Default port: **8080**. Override with `--port`:
-
-```bash
-python -m graphrender.server --port 9090
-```
+Set `GRAPHRENDER_ICON_CACHE_DIR` to an empty string to disable disk caching entirely.
 
 ## Docker
 
-Build and run the GraphRender service image:
+GraphRender ships with a `Dockerfile` and `docker-compose.yml` for containerised deployment and integration testing.
+
+The HTTP server exposes port **8080** by default.
+
+### Build the image
 
 ```bash
-docker build -t graph-render .
-docker run -p 8080:8080 graph-render
+docker compose build
 ```
 
-The Dockerfile uses a multi-stage build. The final image contains only the installed Python package and its runtime dependencies.
+### Run the service
 
-Exposed port: **8080**
+```bash
+docker compose up -d
+```
+
+### Health check
+
+The service exposes `GET /health` which returns HTTP 200 with:
+
+```json
+{"status": "ok"}
+```
+
+Content-Type is `application/json`. This endpoint is used by the `docker-compose.yml` health check and by Graphras for readiness polling.
 
 ## Integration Testing
 
-Integration tests verify GraphRender against a live service instance. They live in `tests/integration/` and are **not** executed by the default `pytest` command.
+Integration tests run against a live instance of the service and are located in `tests/integration/`.
 
-### Prerequisites
+### Step-by-step
 
-- Docker and Docker Compose installed
-- Python 3.10+ with pytest
-
-### Steps
-
-1. **Build and start the service:**
+1. **Build the Docker image:**
 
    ```bash
-   docker compose up -d --build
+   docker compose build
    ```
 
-2. **Wait for the service to be healthy:**
+2. **Start the compose stack:**
+
+   ```bash
+   docker compose up -d
+   ```
+
+3. **Wait for the service to be healthy:**
 
    ```bash
    docker compose ps
@@ -192,19 +189,19 @@ Integration tests verify GraphRender against a live service instance. They live 
 
    The `graph-render` service should show status `healthy`.
 
-3. **Run integration tests:**
+4. **Run the integration tests:**
 
    ```bash
-   INTEGRATION=1 pytest tests/integration/ -v
+   pytest tests/integration/
    ```
 
-   Override the default service URL (`http://localhost:8080`) with `SERVICE_URL`:
+   By default, tests target `http://localhost:8080`. Override with the `SERVICE_URL` environment variable:
 
    ```bash
-   INTEGRATION=1 SERVICE_URL=http://localhost:8080 pytest tests/integration/ -v
+   SERVICE_URL=http://localhost:9090 pytest tests/integration/
    ```
 
-4. **Tear down:**
+5. **Tear down:**
 
    ```bash
    docker compose down
@@ -212,6 +209,53 @@ Integration tests verify GraphRender against a live service instance. They live 
 
 ### Notes
 
-- Integration tests require `INTEGRATION=1` to run. Without it, they are automatically skipped.
-- Tests are self-contained and idempotent — they create their own test data and can be run repeatedly without side effects.
-- The health-check polling fixture waits up to 30 seconds (configurable via `HEALTH_TIMEOUT`) for the service to become ready.
+- Integration tests are **not** run by the default `pytest` invocation (unit tests only). They require a live service.
+- Tests are self-contained and idempotent — they create their own test data and clean up after themselves.
+- The `SERVICE_URL` environment variable controls which instance the tests target.
+
+## Testing
+
+Run unit tests:
+
+```bash
+pytest tests/ --ignore=tests/integration
+```
+
+Run integration tests (requires a running service — see [Integration Testing](#integration-testing)):
+
+```bash
+pytest tests/integration/
+```
+
+## Automation
+
+CI/CD is managed via GitHub Actions workflows:
+
+- [`.github/workflows/ci.yml`](.github/workflows/ci.yml) — main CI pipeline
+- [`.github/workflows/test.yml`](.github/workflows/test.yml) — test suite
+- [`.github/workflows/gitleaks.yml`](.github/workflows/gitleaks.yml) — secret scanning with Gitleaks
+- [`.github/workflows/release.yml`](.github/workflows/release.yml) — release automation
+
+See [`.github/dependabot.yml`](.github/dependabot.yml) for dependency update configuration.
+
+## Contributing
+
+See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for contribution guidelines.
+
+## Security
+
+See [`SECURITY.md`](./SECURITY.md) for the security policy and vulnerability reporting instructions.
+
+## Governance
+
+This project follows the [Code of Conduct](./CODE_OF_CONDUCT.md).
+
+For release process details, see [`RELEASE.md`](./RELEASE.md).
+
+## Third-Party Notices
+
+See [`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md) for third-party license attributions.
+
+## License
+
+This project is licensed under the [Apache License 2.0](./LICENSE).
