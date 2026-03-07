@@ -133,79 +133,150 @@ export GRAPHRENDER_ICON_CACHE_DIR=/path/to/cache
 
 If unset, GraphRender uses platform cache locations (for example `~/.cache/graphrender/icons` on Linux/macOS).
 
-Set `GRAPHRENDER_ICON_CACHE_DIR` to an empty string to disable disk caching.
+Set `GRAPHRENDER_ICON_CACHE_DIR` to an empty string to disable persistent disk caching.
+
+## Integration Testing
+
+GraphRender includes a lightweight HTTP server and Docker setup for integration testing.
+
+### HTTP Server
+
+The server exposes two endpoints:
+
+| Endpoint  | Method | Description                            |
+|-----------|--------|----------------------------------------|
+| `/health` | `GET`  | Returns `{"status": "ok"}` with HTTP 200 |
+| `/render` | `POST` | Accepts ELK JSON body, returns SVG     |
+
+**Port:** `8080` (configurable via the `GRAPHRENDER_PORT` environment variable).
+
+### Building the Docker Image
+
+```bash
+docker build -t graph-render .
+```
+
+### Starting with Docker Compose
+
+```bash
+docker compose up -d
+```
+
+Wait for the service to become healthy:
+
+```bash
+docker compose ps
+# graph-render should show status "healthy"
+```
+
+Or check manually:
+
+```bash
+curl http://localhost:8080/health
+# {"status": "ok"}
+```
+
+### Running Integration Tests
+
+Integration tests live in `tests/integration/` and require a running service instance:
+
+```bash
+# 1. Start the service
+docker compose up -d
+
+# 2. Run integration tests
+SERVICE_URL=http://localhost:8080 pytest tests/integration/ -v
+
+# 3. Tear down
+docker compose down
+```
+
+Integration tests are automatically **skipped** when `SERVICE_URL` is not set, so the default `pytest` invocation only runs unit tests.
+
+### Teardown
+
+```bash
+docker compose down
+```
 
 ## Theming Notes
 
-- `.css` themes are embedded directly
-- `.scss` / `.sass` themes are compiled with the `sass` CLI
-- Theme sources:
-  - `themes/_variables.scss`
-  - `themes/theme.scss`
-  - `src/graphrender/resources/default_theme.css`
+GraphRender supports three theme formats:
+
+- **CSS** — embedded directly into the SVG `<style>` block
+- **SCSS / SASS** — compiled via the Dart Sass CLI (`sass`) before embedding
+
+The default theme is bundled at `src/graphrender/resources/default_theme.css` and is embedded automatically unless `--no-theme` is passed.
+
+Custom themes override the default:
+
+```bash
+python main.py examples/input.json --theme themes/theme.scss -o output/themed.svg
+```
+
+Theme variables are defined in `themes/_variables.scss` and imported by `themes/theme.scss`.
 
 ## Troubleshooting
 
-### `SCSS/SASS theme compilation requires the sass CLI in PATH`
-
-Install Dart Sass and ensure `sass` is available in your shell.
-
-### Missing icons
-
-- Confirm outbound access to Iconify API
-- Check cache directory permissions
-- Retry rendering; invalid cache entries are automatically repaired
-
-### `python` command fails with syntax errors
-
-Use `python3` explicitly.
+| Problem | Solution |
+|---|---|
+| `sass` not found | Install Dart Sass: `npm install -g sass` or download from the [Sass releases](https://github.com/sass/dart-sass/releases) |
+| Icon not rendering | Check network connectivity; icon SVGs are fetched from the Iconify API on first use |
+| Corrupted icon cache | Delete the cache directory or set `GRAPHRENDER_ICON_CACHE_DIR` to a fresh path |
+| SVG output is empty | Verify the input JSON contains `width`/`height` on the root and geometry on child nodes |
 
 ## Development
 
 ```bash
-python -m pytest -q
-python -m py_compile main.py src/graphrender/__init__.py src/graphrender/graphrender.py src/graphrender/resources/__init__.py
-python main.py examples/input.json -o /tmp/graphrender-check.svg
+# Clone and set up
+git clone https://github.com/Faerkeren/GraphRender.git
+cd GraphRender
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+
+# Run unit tests
+pytest
+
+# Run a quick render
+python main.py examples/input.json -o output/dev-test.svg
 ```
 
 ## Project Layout
 
-```text
-main.py                               # CLI entrypoint
-src/graphrender/graphrender.py        # Core renderer
-src/graphrender/resources/            # Bundled theme/resources
-themes/                               # SCSS theme source
-examples/                             # Example ELK input
-tests/                                # Pytest suite
+```
+src/graphrender/            Core rendering library
+src/graphrender/resources/  Default theme and static assets
+src/graphrender/server.py   Lightweight HTTP server (health + render)
+tests/                      Unit tests
+tests/integration/          Integration tests (require running service)
+themes/                     SCSS theme sources
+examples/                   Example ELK JSON input files
+output/                     Default output directory
+docs/adr/                   Architecture Decision Records
 ```
 
-## Governance and Community
+## Governance
 
-- Security policy: `SECURITY.md`
-- Contribution guide: `CONTRIBUTING.md`
-- Code of conduct: `CODE_OF_CONDUCT.md`
-- Changelog: `CHANGELOG.md`
-- Release process: `RELEASE.md`
+See [CONTRIBUTING.md](./CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md).
 
 ## Automation
 
-- CI build and sanity checks: `.github/workflows/ci.yml`
-- Test matrix + coverage gate: `.github/workflows/test.yml`
-- Secret scanning (gitleaks): `.github/workflows/gitleaks.yml`
-- Tagged releases: `.github/workflows/release.yml`
-- Dependency updates: `.github/dependabot.yml`
+CI/CD is managed via GitHub Actions:
+
+- **CI** — linting and build checks on every push
+- **Tests** — unit test suite on every push and pull request
+- **Secret Scan** — Gitleaks scanning for leaked credentials
+- **Release** — automated release workflow
 
 ## Acknowledgements
 
-- Eclipse Layout Kernel (ELK) for graph layout modeling and options
-- `svg.py` for Python SVG element construction
-- Iconify for icon assets and API-based SVG retrieval
-- Dart Sass for SCSS/SASS theme compilation support
+GraphRender is part of the [GraphRapids](https://github.com/Faerkeren) suite.
 
 ## Third-Party Notices
 
-See `THIRD_PARTY_NOTICES.md` for dependency, service, and icon-set license notices.
+See [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md).
 
 ## License
 
-GraphRender is licensed under Apache License 2.0. See `LICENSE`.
+Licensed under the Apache License, Version 2.0. See [LICENSE](./LICENSE) for the full text.
